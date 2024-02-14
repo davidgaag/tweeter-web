@@ -22,7 +22,7 @@ export abstract class StatusItemPresenter {
    }
 
    protected set hasMoreItems(value: boolean) {
-      this.hasMoreItems = value;
+      this._hasMoreItems = value;
    }
 
    abstract loadMoreItems(authToken: AuthToken, displayedUser: User): void;

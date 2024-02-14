@@ -19,8 +19,7 @@ const StatusItemScroller = (props: Props) => {
    const itemsReference = useRef(items);
    itemsReference.current = items;
 
-   const { displayedUser, authToken } =
-      useUserInfo();
+   const { displayedUser, authToken } = useUserInfo();
 
    // Load initial items
    useEffect(() => {

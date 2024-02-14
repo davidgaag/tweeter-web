@@ -4,15 +4,15 @@ import Login from "./components/authentication/login/Login";
 import Register from "./components/authentication/register/Register";
 import MainLayout from "./components/mainLayout/MainLayout";
 import Toaster from "./components/toaster/Toaster";
-import { AuthToken, User, FakeData, Status } from "tweeter-shared";
 import UserItemScroller from "./components/mainLayout/UserItemScroller";
 import StatusItemScroller from "./components/mainLayout/StatusItemScroller";
 import useUserInfo from "./components/userInfo/UserInfoHook";
 import { UserItemView } from "./presenter/UserItemPresenter";
 import { FollowingPresenter } from "./presenter/FollowingPresenter";
 import { FollowersPresenter } from "./presenter/FollowersPresenter";
-import { StatusItemPresenter, StatusItemView } from "./presenter/StatusItemPresenter";
+import { StatusItemView } from "./presenter/StatusItemPresenter";
 import { FeedPresenter } from "./presenter/FeedPresenter";
+import { StoryPresenter } from "./presenter/StoryPresenter";
 
 
 const App = () => {
@@ -50,7 +50,7 @@ const AuthenticatedRoutes = () => {
         <Route
           path="story"
           element={
-            <StatusItemScroller presenterGenerator={(view: StatusItemView) => new FeedPresenter(view)} />
+            <StatusItemScroller presenterGenerator={(view: StatusItemView) => new StoryPresenter(view)} />
           }
         />
         <Route
