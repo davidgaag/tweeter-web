@@ -14,6 +14,9 @@ import { AuthToken, User, FakeData, Status } from "tweeter-shared";
 import UserItemScroller from "./components/mainLayout/UserItemScroller";
 import StatusItemScroller from "./components/mainLayout/StatusItemScroller";
 import useUserInfo from "./components/userInfo/UserInfoHook";
+import { UserItemView } from "./presenter/UserItemPresenter";
+import { FollowingPresenter } from "./presenter/FollowingPresenter";
+import { FollowersPresenter } from "./presenter/FollowersPresenter";
 
 
 const App = () => {
@@ -38,26 +41,6 @@ const App = () => {
 };
 
 const AuthenticatedRoutes = () => {
-  const loadMoreFollowers = async (
-    authToken: AuthToken,
-    user: User,
-    pageSize: number,
-    lastItem: User | null
-  ): Promise<[User[], boolean]> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
-  };
-
-  const loadMoreFollowees = async (
-    authToken: AuthToken,
-    user: User,
-    pageSize: number,
-    lastItem: User | null
-  ): Promise<[User[], boolean]> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
-  };
-
   const loadMoreStoryItems = async (
     authToken: AuthToken,
     user: User,
@@ -87,13 +70,13 @@ const AuthenticatedRoutes = () => {
         <Route
           path="following"
           element={
-            <UserItemScroller loadItems={loadMoreFollowees} itemDescription="followees" />
+            <UserItemScroller presenterGenerator={(view: UserItemView) => new FollowingPresenter(view)} />
           }
         />
         <Route
           path="followers"
           element={
-            <UserItemScroller loadItems={loadMoreFollowers} itemDescription="followers" />
+            <UserItemScroller presenterGenerator={(view: UserItemView) => new FollowersPresenter(view)} />
           }
         />
         <Route path="logout" element={<Navigate to="/login" />} />

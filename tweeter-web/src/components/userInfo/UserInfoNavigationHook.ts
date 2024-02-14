@@ -13,6 +13,7 @@ const useUserInfoNavigator = (): UserInfoNavigator => {
    const navigateToUser = async (event: React.MouseEvent): Promise<void> => {
       event.preventDefault();
 
+      // TODO: move to presenter
       try {
          let alias = extractAlias(event.target.toString());
 
@@ -30,11 +31,13 @@ const useUserInfoNavigator = (): UserInfoNavigator => {
       }
    };
 
+   // TODO: move to presenter
    const extractAlias = (value: string): string => {
       let index = value.indexOf("@");
       return value.substring(index);
    };
 
+   // TODO: move to presenter
    const getUser = async (
       authToken: AuthToken,
       alias: string
