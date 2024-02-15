@@ -1,4 +1,4 @@
-import { AuthToken, User, FakeData } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { UserService } from "../model-service/UserService";
 
 export interface UserInfoNavigationView {
@@ -12,7 +12,7 @@ export class UserInfoNavigationPresenter {
 
    public constructor(view: UserInfoNavigationView) {
       this.view = view;
-      this.service = new UserService;
+      this.service = new UserService();
    }
 
    public async navigateToUser(authToken: AuthToken, currentUser: User, aliasContext: string,) {
