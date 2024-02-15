@@ -14,7 +14,7 @@ export class PostStatusPresenter {
 
    public constructor(view: PostStatusView) {
       this.view = view;
-      this.service = new StatusService;
+      this.service = new StatusService();
    }
 
    public async submitPost(post: string, user: User, authToken: AuthToken) {

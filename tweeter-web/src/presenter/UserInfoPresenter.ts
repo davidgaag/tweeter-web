@@ -16,7 +16,7 @@ export class UserInfoPresenter {
 
    constructor(view: UserInfoView) {
       this.view = view;
-      this.service = new FollowService;
+      this.service = new FollowService();
    }
 
    public async setIsFollowerStatus(
