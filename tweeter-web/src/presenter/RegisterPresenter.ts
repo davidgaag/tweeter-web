@@ -1,39 +1,28 @@
-import { UserService } from "../model-service/UserService";
 import { Buffer } from "buffer";
-import { AuthenticationView, Presenter, View } from "./Presenter";
+import { AuthenticationPresenter, AuthenticationView } from "./AuthenticationPresenter";
 
 export interface RegisterView extends AuthenticationView {
    setImageUrl: (url: string) => void;
    setImageBytes: (bytes: Uint8Array) => void;
 }
 
-export class RegisterPresenter extends Presenter<RegisterView> {
-   private service: UserService;
-
-   public constructor(view: RegisterView) {
-      super(view);
-      this.service = new UserService();
-   }
-
-   public async doRegister(
-      firstName: string,
-      lastName: string,
+export class RegisterPresenter extends AuthenticationPresenter<RegisterView> {
+   protected authenticate(
       alias: string,
       password: string,
-      imageBytes: Uint8Array) {
-      this.doFailureReportingOperation(async () => {
-         let [user, authToken] = await this.service.register(
-            firstName,
-            lastName,
-            alias,
-            password,
-            imageBytes
-         );
+      firstName?: string,
+      lastName?: string,
+      imageBytes?: Uint8Array) {
+      return this.service.register(firstName!, lastName!, alias, password, imageBytes!);
+   }
 
-         this.view.updateUserInfo(user, authToken);
-         this.view.navigate("/");
-      }, "register user");
-   };
+   public navigate() {
+      this.view.navigate("/");
+   }
+
+   public getAuthenticationDescription() {
+      return "register user";
+   }
 
    public handleImageFile(file: File | undefined) {
       if (file) {

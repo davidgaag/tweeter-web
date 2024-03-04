@@ -1,12 +1,25 @@
-import { UserService } from "../model-service/UserService";
-import { AuthenticationView, Presenter, View } from "./Presenter";
+import { AuthenticationPresenter, AuthenticationView } from "./AuthenticationPresenter";
 
-export class LoginPresenter extends Presenter<AuthenticationView> {
-   private service: UserService;
+export class LoginPresenter extends AuthenticationPresenter<AuthenticationView> {
+   protected authenticate(
+      alias: string,
+      password: string,
+      firstName?: string,
+      lastName?: string,
+      imageBytes?: Uint8Array) {
+      return this.service.login(alias, password);
+   }
 
-   public constructor(view: AuthenticationView) {
-      super(view);
-      this.service = new UserService();
+   public navigate(originalUrl: string): void {
+      if (!!originalUrl) {
+         this.view.navigate(originalUrl);
+      } else {
+         this.view.navigate("/");
+      }
+   }
+
+   public getAuthenticationDescription(): string {
+      return "log user in";
    }
 
    public async doLogin(alias: string, password: string, originalUrl?: string) {

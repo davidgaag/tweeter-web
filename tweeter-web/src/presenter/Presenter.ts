@@ -1,5 +1,3 @@
-import { User, AuthToken } from "tweeter-shared";
-
 export interface View {
    displayErrorMessage: (message: string) => void;
 }
@@ -7,11 +5,6 @@ export interface View {
 export interface MessageView extends View {
    displayInfoMessage: (message: string, duration: number) => void;
    clearLastInfoMessage: () => void;
-}
-
-export interface AuthenticationView extends View {
-   updateUserInfo: (user: User, authToken: AuthToken) => void;
-   navigate: (url: string) => void;
 }
 
 export class Presenter<T extends View> {
