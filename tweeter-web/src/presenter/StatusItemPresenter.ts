@@ -1,29 +1,9 @@
-import { AuthToken, Status, User } from "tweeter-shared";
+import { Status } from "tweeter-shared";
+import { PagedItemPresenter, PagedItemView } from "./PagedItemPresenter";
+import { StatusService } from "../model-service/StatusService";
 
-export interface StatusItemView {
-   addItems: (items: Status[]) => void;
-   displayErrorMessage: (message: string) => void;
-}
-
-export abstract class StatusItemPresenter {
-   private _view: StatusItemView;
-   private _hasMoreItems = true;
-
-   public constructor(view: StatusItemView) {
-      this._view = view;
+export abstract class StatusItemPresenter extends PagedItemPresenter<Status, StatusService> {
+   protected createService(): StatusService {
+      return new StatusService();
    }
-
-   protected get view() {
-      return this._view;
-   }
-
-   public get hasMoreItems() {
-      return this._hasMoreItems;
-   }
-
-   protected set hasMoreItems(value: boolean) {
-      this._hasMoreItems = value;
-   }
-
-   abstract loadMoreItems(authToken: AuthToken, displayedUser: User): void;
 }

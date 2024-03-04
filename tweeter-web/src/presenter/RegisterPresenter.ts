@@ -1,21 +1,17 @@
-import { AuthToken, User } from "tweeter-shared";
 import { UserService } from "../model-service/UserService";
 import { Buffer } from "buffer";
+import { AuthenticationView, Presenter, View } from "./Presenter";
 
-export interface RegisterView {
-   updateUserInfo: (user: User, authToken: AuthToken) => void;
-   navigate: (url: string) => void;
+export interface RegisterView extends AuthenticationView {
    setImageUrl: (url: string) => void;
    setImageBytes: (bytes: Uint8Array) => void;
-   displayErrorMessage: (message: string) => void;
 }
 
-export class RegisterPresenter {
+export class RegisterPresenter extends Presenter<RegisterView> {
    private service: UserService;
-   private view: RegisterView;
 
    public constructor(view: RegisterView) {
-      this.view = view;
+      super(view);
       this.service = new UserService();
    }
 
@@ -25,7 +21,7 @@ export class RegisterPresenter {
       alias: string,
       password: string,
       imageBytes: Uint8Array) {
-      try {
+      this.doFailureReportingOperation(async () => {
          let [user, authToken] = await this.service.register(
             firstName,
             lastName,
@@ -36,11 +32,7 @@ export class RegisterPresenter {
 
          this.view.updateUserInfo(user, authToken);
          this.view.navigate("/");
-      } catch (error) {
-         this.view.displayErrorMessage(
-            `Failed to register user because of exception: ${error}`
-         );
-      }
+      }, "register user");
    };
 
    public handleImageFile(file: File | undefined) {
