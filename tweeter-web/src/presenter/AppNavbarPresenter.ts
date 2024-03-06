@@ -7,11 +7,17 @@ export interface AppNavbarView extends MessageView {
 }
 
 export class AppNavbarPresenter extends Presenter<AppNavbarView> {
-   private service: UserService;
+   private _service: UserService | null = null;
 
    public constructor(view: AppNavbarView) {
       super(view);
-      this.service = new UserService();
+   }
+
+   public get service() {
+      if (this._service === null) {
+         this._service = new UserService();
+      }
+      return this._service;
    }
 
    public async logOut(authToken: AuthToken) {

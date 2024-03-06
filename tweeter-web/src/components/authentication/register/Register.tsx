@@ -39,7 +39,7 @@ const Register = () => {
   };
 
   const doRegister = async () => {
-    presenter.doRegister(firstName, lastName, alias, password, imageBytes);
+    presenter.doAuthentication(alias, password, undefined, firstName, lastName, imageBytes);
   };
 
   const listener: RegisterView = {

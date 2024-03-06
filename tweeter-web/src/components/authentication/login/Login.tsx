@@ -8,7 +8,7 @@ import useToastListener from "../../toaster/ToastListenerHook";
 import { AuthenticationFields, PageType } from "../AuthenticationFields";
 import useUserInfo from "../../userInfo/UserInfoHook";
 import { LoginPresenter } from "../../../presenter/LoginPresenter";
-import { AuthenticationView } from "../../../presenter/Presenter";
+import { AuthenticationView } from "../../../presenter/AuthenticationPresenter";
 
 interface Props {
   originalUrl?: string;
