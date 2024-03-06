@@ -37,18 +37,18 @@ describe("AppNavbarPresenter", () => {
       // expect(capturedAuthToken).toEqual(authToken);
    });
 
-   it(". when the logout is sucessful, tells the view to clear the last info message, clear the user info, and navigate to the login page", async () => {
+   it("when the logout is sucessful, tells the view to clear the last info message, clear the user info, and navigate to the login page", async () => {
       await appNavbarPresenter.logOut(authToken);
 
       verify(mockAppNavbarView.clearLastInfoMessage()).once();
       verify(mockAppNavbarView.clearUserInfo()).once();
-      // TODO: No navigateToLogin() on the View, did I miss something? I did put it in the service, is that the wrong place?
+      // TODO: No navigateToLogin() on the View
       // verify(mockAppNavbarView.navigateToLogin()).once();
 
       verify(mockAppNavbarView.displayErrorMessage(anything())).never();
    });
 
-   it(", when the logout is unsucessful, tells the view to display an error message and does not tell it to clear " +
+   it("when the logout is unsucessful, tells the view to display an error message and does not tell it to clear " +
       "last info message, clear user info, or navigate to the login page", async () => {
          const error = new Error("Logout unsuccessful.");
          when(mockUserService.logout(authToken)).thenThrow(error);
@@ -59,7 +59,7 @@ describe("AppNavbarPresenter", () => {
 
          verify(mockAppNavbarView.clearLastInfoMessage()).never();
          verify(mockAppNavbarView.clearUserInfo()).never();
-         // TODO: No navigateToLogin() on the View, did I miss something? I did put it in the service, is that the wrong place?
+         // TODO: No navigateToLogin() on the View
          // verify(mockAppNavbarView.navigateToLogin()).never();
       });
 });
