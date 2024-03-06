@@ -9,7 +9,7 @@ describe("PostStatusPresenter", () => {
    let mockStatusService: StatusService;
 
    const post = "Hello, world!";
-   const user = new User("First", "Last", "alias", "url");
+   const user = new User("First", "Last", "@alias", "url");
    const authToken = new AuthToken("test", Date.now());
 
    beforeEach(() => {
