@@ -12,6 +12,7 @@ import { AuthenticationView } from "../../../presenter/AuthenticationPresenter";
 
 interface Props {
   originalUrl?: string;
+  presenter?: LoginPresenter;
 }
 
 const Login = (props: Props) => {
@@ -35,7 +36,7 @@ const Login = (props: Props) => {
   }
 
   const doLogin = async () => {
-    presenter.doLogin(alias, password);
+    presenter.doAuthentication(alias, password, props.originalUrl);
   };
 
   const listener: AuthenticationView = {
@@ -44,7 +45,8 @@ const Login = (props: Props) => {
     displayErrorMessage: displayErrorMessage
   }
 
-  const presenter = new LoginPresenter(listener);
+  // TODO: useState needed?
+  const presenter = props.presenter ?? new LoginPresenter(listener);
 
   const inputFieldGenerator = () => {
     return (

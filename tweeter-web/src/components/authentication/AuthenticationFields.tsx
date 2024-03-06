@@ -20,6 +20,7 @@ const AuthenticationFields = (props: Props) => { // TODO: Use object destructuri
                className="form-control"
                size={50}
                id="aliasInput"
+               aria-label="alias"
                placeholder="name@example.com"
                onChange={(event) => props.setAlias(event.target.value)}
             />
@@ -30,6 +31,7 @@ const AuthenticationFields = (props: Props) => { // TODO: Use object destructuri
                type="password"
                className="form-control bottom"
                id="passwordInput"
+               aria-label="password"
                placeholder="Password"
                onChange={(event) => props.setPassword(event.target.value)}
             />
