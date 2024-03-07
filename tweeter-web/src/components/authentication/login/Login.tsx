@@ -45,7 +45,7 @@ const Login = (props: Props) => {
     displayErrorMessage: displayErrorMessage
   }
 
-  // TODO: useState needed?
+  // TODO: useState needed? Ask about this, applicable to all views with a presenter
   const presenter = props.presenter ?? new LoginPresenter(listener);
 
   const inputFieldGenerator = () => {
