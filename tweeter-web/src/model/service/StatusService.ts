@@ -1,6 +1,9 @@
 import { AuthToken, User, Status, FakeData } from "tweeter-shared";
+import { ServerFacade } from "../net/ServerFacade";
 
 export class StatusService {
+   private serverFacade = new ServerFacade();
+
    public async loadMoreStoryItems(
       authToken: AuthToken,
       user: User,

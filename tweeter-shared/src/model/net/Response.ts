@@ -78,3 +78,31 @@ export class AuthResponse extends TweeterResponse {
       );
    }
 }
+
+export class UserCountResponse extends TweeterResponse {
+   _count: number;
+
+   constructor(success: boolean, count: number, message: string | null) {
+      super(success, message);
+      this._count = count;
+   }
+
+   get count() {
+      return this._count;
+   }
+
+   static fromJson(json: JSON): UserCountResponse {
+      interface UserCountResponseJson extends ResponseJson {
+         _count: number;
+      }
+
+      const jsonObject: UserCountResponseJson =
+         json as unknown as UserCountResponseJson;
+
+      return new UserCountResponse(
+         jsonObject._success,
+         jsonObject._count,
+         jsonObject._message
+      );
+   }
+}

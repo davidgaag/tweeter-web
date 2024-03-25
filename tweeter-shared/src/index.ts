@@ -11,4 +11,7 @@ export { FakeData } from "./util/FakeData";
 export { TweeterRequest } from "./model/net/Request";
 export { LoginRequest } from "./model/net/Request";
 export { RegisterRequest } from "./model/net/Request";
+export { UserRequest } from "./model/net/Request";
+
 export { AuthResponse } from "./model/net/Response";
+export { UserCountResponse } from "./model/net/Response";

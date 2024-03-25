@@ -1,3 +1,6 @@
+import { AuthToken } from "../domain/AuthToken";
+import { User } from "../domain/User";
+
 export class TweeterRequest {
    // TODO: authToken?
 }
@@ -27,5 +30,16 @@ export class RegisterRequest extends TweeterRequest {
       this.alias = alias;
       this.password = password;
       this.imageStringBase64 = imageBytes;
+   }
+}
+
+export class UserRequest extends TweeterRequest {
+   authToken: AuthToken;
+   user: User;
+
+   constructor(authToken: AuthToken, user: User) {
+      super();
+      this.authToken = authToken;
+      this.user = user;
    }
 }
