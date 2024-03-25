@@ -10,6 +10,13 @@ class FollowService {
         return [followersCount, followeesCount];
     }
     ;
+    async unfollow(authToken, userToFollow) {
+        // TODO: M4: Real data
+        let followersCount = await this.getFollowersCount(authToken, userToFollow);
+        let followeesCount = await this.getFolloweesCount(authToken, userToFollow);
+        return [followersCount, followeesCount];
+    }
+    ;
     async getFolloweesCount(authToken, user) {
         // TODO: M4: Real data
         return tweeter_shared_1.FakeData.instance.getFolloweesCount(user);

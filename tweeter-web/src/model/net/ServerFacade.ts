@@ -1,4 +1,11 @@
-import { AuthResponse, RegisterRequest, LoginRequest, UserRequest, UserCountResponse } from "tweeter-shared";
+import {
+   AuthResponse,
+   RegisterRequest,
+   LoginRequest,
+   UserRequest,
+   UserCountResponse,
+   FollowResponse
+} from "tweeter-shared";
 import { ClientCommunicator } from "./ClientCommunicator";
 
 export class ServerFacade {
@@ -33,6 +40,20 @@ export class ServerFacade {
       const response: JSON = await this.clientCommunicator.doPost<UserRequest>(request, endpoint);
 
       return UserCountResponse.fromJson(response);
+   }
+
+   async follow(request: UserRequest): Promise<FollowResponse> {
+      const endpoint = "/service/follow";
+      const response: JSON = await this.clientCommunicator.doPost<UserRequest>(request, endpoint);
+
+      return FollowResponse.fromJson(response);
+   }
+
+   async unfollow(request: UserRequest): Promise<FollowResponse> {
+      const endpoint = "/service/unfollow";
+      const response: JSON = await this.clientCommunicator.doPost<UserRequest>(request, endpoint);
+
+      return FollowResponse.fromJson(response);
    }
 
    // async TODO(request: TODO): Promise<TODO> {

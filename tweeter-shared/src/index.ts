@@ -15,3 +15,4 @@ export { UserRequest } from "./model/net/Request";
 
 export { AuthResponse } from "./model/net/Response";
 export { UserCountResponse } from "./model/net/Response";
+export { FollowResponse } from "./model/net/Response";

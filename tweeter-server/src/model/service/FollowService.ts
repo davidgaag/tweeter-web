@@ -13,6 +13,18 @@ export class FollowService {
       return [followersCount, followeesCount];
    };
 
+   public async unfollow(
+      authToken: AuthToken,
+      userToFollow: User
+   ): Promise<[followersCount: number, followeesCount: number]> {
+      // TODO: M4: Real data
+
+      let followersCount = await this.getFollowersCount(authToken, userToFollow);
+      let followeesCount = await this.getFolloweesCount(authToken, userToFollow);
+
+      return [followersCount, followeesCount];
+   };
+
    public async getFolloweesCount(
       authToken: AuthToken,
       user: User
