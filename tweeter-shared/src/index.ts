@@ -12,7 +12,11 @@ export { TweeterRequest } from "./model/net/Request";
 export { LoginRequest } from "./model/net/Request";
 export { RegisterRequest } from "./model/net/Request";
 export { UserRequest } from "./model/net/Request";
+export { IsFollowerRequest } from "./model/net/Request";
+export { LoadMoreItemsRequest } from "./model/net/Request";
 
 export { AuthResponse } from "./model/net/Response";
 export { UserCountResponse } from "./model/net/Response";
 export { FollowResponse } from "./model/net/Response";
+export { IsFollowerResponse } from "./model/net/Response";
+export { LoadMoreItemsResponse } from "./model/net/Response";

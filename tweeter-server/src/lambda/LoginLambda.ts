@@ -6,5 +6,6 @@ export const LoginHandler = async (event: LoginRequest): Promise<AuthResponse> =
       true,
       ...await new UserService().login(event.username, event.password),
       "Login successful");
+
    return response;
 };

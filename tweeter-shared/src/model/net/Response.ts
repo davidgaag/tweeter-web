@@ -25,10 +25,10 @@ interface ResponseJson {
 }
 
 export class AuthResponse extends TweeterResponse {
-   _user: User;
-   _token: AuthToken;
+   _user: User | null;
+   _token: AuthToken | null;
 
-   constructor(success: boolean, user: User, token: AuthToken, message: string | null) {
+   constructor(success: boolean, user: User | null, token: AuthToken | null, message: string | null) {
       super(success, message);
       this._user = user;
       this._token = token;
@@ -54,7 +54,7 @@ export class AuthResponse extends TweeterResponse {
 
       if (deserializedUser === null) {
          throw new Error(
-            "AuthenticateResponse, could not deserialize user with json:\n" +
+            "AuthResponse, could not deserialize user with json:\n" +
             JSON.stringify(jsonObject._user)
          );
       }
@@ -65,7 +65,7 @@ export class AuthResponse extends TweeterResponse {
 
       if (deserializedToken === null) {
          throw new Error(
-            "AuthenticateResponse, could not deserialize token with json:\n" +
+            "AuthResponse, could not deserialize token with json:\n" +
             JSON.stringify(jsonObject._token)
          );
       }
@@ -138,6 +138,70 @@ export class FollowResponse extends TweeterResponse {
          jsonObject._success,
          jsonObject._followersCount,
          jsonObject._followeesCount,
+         jsonObject._message
+      );
+   }
+}
+
+export class IsFollowerResponse extends TweeterResponse {
+   _isFollower: boolean;
+
+   constructor(success: boolean, isFollower: boolean, message: string | null) {
+      super(success, message);
+      this._isFollower = isFollower;
+   }
+
+   get isFollower() {
+      return this._isFollower;
+   }
+
+   static fromJson(json: JSON): IsFollowerResponse {
+      interface IsFollowerResponseJson extends ResponseJson {
+         _isFollower: boolean;
+      }
+
+      const jsonObject: IsFollowerResponseJson =
+         json as unknown as IsFollowerResponseJson;
+
+      return new IsFollowerResponse(
+         jsonObject._success,
+         jsonObject._isFollower,
+         jsonObject._message
+      );
+   }
+}
+
+export class LoadMoreItemsResponse<T> extends TweeterResponse {
+   _items: T[];
+   _hasMorePages: boolean;
+
+   constructor(success: boolean, items: T[], hasMorePages: boolean, message: string | null) {
+      super(success, message);
+      this._items = items;
+      this._hasMorePages = hasMorePages;
+   }
+
+   get items() {
+      return this._items;
+   }
+
+   get hasMorePages() {
+      return this._hasMorePages;
+   }
+
+   static fromJson<T>(json: JSON): LoadMoreItemsResponse<T> {
+      interface LoadMoreItemsResponseJson<T> extends ResponseJson {
+         _items: T[];
+         _hasMorePages: boolean;
+      }
+
+      const jsonObject: LoadMoreItemsResponseJson<T> =
+         json as unknown as LoadMoreItemsResponseJson<T>;
+
+      return new LoadMoreItemsResponse(
+         jsonObject._success,
+         jsonObject._items,
+         jsonObject._hasMorePages,
          jsonObject._message
       );
    }

@@ -4,7 +4,9 @@ import {
    LoginRequest,
    UserRequest,
    UserCountResponse,
-   FollowResponse
+   FollowResponse,
+   IsFollowerRequest,
+   IsFollowerResponse
 } from "tweeter-shared";
 import { ClientCommunicator } from "./ClientCommunicator";
 
@@ -26,6 +28,13 @@ export class ServerFacade {
       const response: JSON = await this.clientCommunicator.doPost<RegisterRequest>(request, endpoint);
 
       return AuthResponse.fromJson(response);
+   }
+
+   async getIsFollowerStatus(request: IsFollowerRequest): Promise<IsFollowerResponse> {
+      const endpoint = "/get/isfollower";
+      const response: JSON = await this.clientCommunicator.doPost<UserRequest>(request, endpoint);
+
+      return IsFollowerResponse.fromJson(response);
    }
 
    async getFolloweesCount(request: UserRequest): Promise<UserCountResponse> {
