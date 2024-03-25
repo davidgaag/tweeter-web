@@ -1,4 +1,4 @@
-import { AuthToken, User, FakeData, LoginRequest } from "tweeter-shared";
+import { AuthToken, User, FakeData, LoginRequest, RegisterRequest } from "tweeter-shared";
 import { Buffer } from "buffer";
 import { ServerFacade } from "../net/ServerFacade";
 
@@ -18,7 +18,7 @@ export class UserService {
       password: string
    ): Promise<[User, AuthToken]> {
       const response = await this.serverFacade.login(new LoginRequest(alias, password));
-      return [response._user, response._token];
+      return [response.user, response.token];
    };
 
    public async register(
@@ -28,18 +28,18 @@ export class UserService {
       password: string,
       userImageBytes: Uint8Array
    ): Promise<[User, AuthToken]> {
-      // Not neded now, but will be needed when you make the request to the server in milestone 3
       let imageStringBase64: string =
          Buffer.from(userImageBytes).toString("base64");
 
-      // TODO: Replace with the result of calling the server
-      let user = FakeData.instance.firstUser;
+      const response = await this.serverFacade.register(new RegisterRequest(
+         firstName,
+         lastName,
+         alias,
+         password,
+         imageStringBase64
+      ));
 
-      if (user === null) {
-         throw new Error("Invalid registration");
-      }
-
-      return [user, FakeData.instance.authToken];
+      return [response.user, response.token];
    };
 
    public async logout(authToken: AuthToken): Promise<void> {

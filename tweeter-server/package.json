@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "tweeter-shared": "file:../tweeter-shared",
     "moment": "^2.29.4",
+    "tweeter-shared": "file:../tweeter-shared",
     "uuid": "^9.0.0"
   }
 }
