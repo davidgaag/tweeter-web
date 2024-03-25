@@ -6,7 +6,11 @@ import {
    UserCountResponse,
    FollowResponse,
    IsFollowerRequest,
-   IsFollowerResponse
+   IsFollowerResponse,
+   LoadMoreItemsRequest,
+   Status,
+   User,
+   LoadMoreItemsResponse
 } from "tweeter-shared";
 import { ClientCommunicator } from "./ClientCommunicator";
 
@@ -28,6 +32,20 @@ export class ServerFacade {
       const response: JSON = await this.clientCommunicator.doPost<RegisterRequest>(request, endpoint);
 
       return AuthResponse.fromJson(response);
+   }
+
+   async loadMoreFollowers(request: LoadMoreItemsRequest<User>): Promise<LoadMoreItemsResponse<User>> {
+      const endpoint = "/get/followers";
+      const response: JSON = await this.clientCommunicator.doPost<LoadMoreItemsRequest<User>>(request, endpoint);
+
+      return LoadMoreItemsResponse.usersFromJson(response);
+   }
+
+   async loadMoreFollowees(request: LoadMoreItemsRequest<User>): Promise<LoadMoreItemsResponse<User>> {
+      const endpoint = "/get/followees";
+      const response: JSON = await this.clientCommunicator.doPost<LoadMoreItemsRequest<User>>(request, endpoint);
+
+      return LoadMoreItemsResponse.usersFromJson(response);
    }
 
    async getIsFollowerStatus(request: IsFollowerRequest): Promise<IsFollowerResponse> {
@@ -64,11 +82,4 @@ export class ServerFacade {
 
       return FollowResponse.fromJson(response);
    }
-
-   // async TODO(request: TODO): Promise<TODO> {
-   //    const endpoint = "/TODO";
-   //    const response: JSON = await this.clientCommunicator.doPost<TODO>(request, endpoint);
-
-   //    return TODO.fromJson(response);
-   // }
 }

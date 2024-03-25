@@ -1,4 +1,4 @@
-import { AuthToken, User, FakeData, IsFollowerRequest } from "tweeter-shared";
+import { AuthToken, User, FakeData, IsFollowerRequest, LoadMoreItemsRequest } from "tweeter-shared";
 import { ServerFacade } from "../net/ServerFacade";
 import { UserRequest } from "tweeter-shared";
 
@@ -11,8 +11,9 @@ export class FollowService {
       pageSize: number,
       lastItem: User | null
    ): Promise<[User[], boolean]> {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
+      const response = await this.serverFacade.loadMoreFollowers(
+         new LoadMoreItemsRequest(authToken, user, pageSize, lastItem));
+      return [response.items, response.hasMorePages];
    };
 
    public async loadMoreFollowees(
@@ -21,8 +22,9 @@ export class FollowService {
       pageSize: number,
       lastItem: User | null
    ): Promise<[User[], boolean]> {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getPageOfUsers(lastItem, pageSize, user);
+      const response = await this.serverFacade.loadMoreFollowees(
+         new LoadMoreItemsRequest(authToken, user, pageSize, lastItem));
+      return [response.items, response.hasMorePages];
    };
 
    public async getIsFollowerStatus(

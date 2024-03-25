@@ -1,4 +1,5 @@
 import { AuthToken } from "../domain/AuthToken";
+import { Status } from "../domain/Status";
 import { User } from "../domain/User";
 
 export class TweeterResponse {
@@ -25,10 +26,10 @@ interface ResponseJson {
 }
 
 export class AuthResponse extends TweeterResponse {
-   _user: User | null;
-   _token: AuthToken | null;
+   private _user: User;
+   private _token: AuthToken;
 
-   constructor(success: boolean, user: User | null, token: AuthToken | null, message: string | null) {
+   constructor(success: boolean, user: User, token: AuthToken, message: string | null) {
       super(success, message);
       this._user = user;
       this._token = token;
@@ -80,7 +81,7 @@ export class AuthResponse extends TweeterResponse {
 }
 
 export class UserCountResponse extends TweeterResponse {
-   _count: number;
+   private _count: number;
 
    constructor(success: boolean, count: number, message: string | null) {
       super(success, message);
@@ -108,8 +109,8 @@ export class UserCountResponse extends TweeterResponse {
 }
 
 export class FollowResponse extends TweeterResponse {
-   _followersCount: number;
-   _followeesCount: number;
+   private _followersCount: number;
+   private _followeesCount: number;
 
    constructor(success: boolean, followersCount: number, followeesCount: number, message: string | null) {
       super(success, message);
@@ -144,7 +145,7 @@ export class FollowResponse extends TweeterResponse {
 }
 
 export class IsFollowerResponse extends TweeterResponse {
-   _isFollower: boolean;
+   private _isFollower: boolean;
 
    constructor(success: boolean, isFollower: boolean, message: string | null) {
       super(success, message);
@@ -172,8 +173,8 @@ export class IsFollowerResponse extends TweeterResponse {
 }
 
 export class LoadMoreItemsResponse<T> extends TweeterResponse {
-   _items: T[];
-   _hasMorePages: boolean;
+   private _items: T[];
+   private _hasMorePages: boolean;
 
    constructor(success: boolean, items: T[], hasMorePages: boolean, message: string | null) {
       super(success, message);
@@ -189,18 +190,53 @@ export class LoadMoreItemsResponse<T> extends TweeterResponse {
       return this._hasMorePages;
    }
 
-   static fromJson<T>(json: JSON): LoadMoreItemsResponse<T> {
-      interface LoadMoreItemsResponseJson<T> extends ResponseJson {
-         _items: T[];
+   static usersFromJson(json: JSON): LoadMoreItemsResponse<User> {
+      interface LoadMoreItemsResponseJson extends ResponseJson {
+         _items: JSON[];
          _hasMorePages: boolean;
       }
 
-      const jsonObject: LoadMoreItemsResponseJson<T> =
-         json as unknown as LoadMoreItemsResponseJson<T>;
+      const jsonObject: LoadMoreItemsResponseJson = json as unknown as LoadMoreItemsResponseJson;
+      const deserializedUsers: User[] = jsonObject._items.map((userJson: JSON) => {
+         const deserializedUser = User.fromJson(JSON.stringify(userJson));
+         if (deserializedUser === null) {
+            throw new Error(
+               "LoadMoreItemsResponse, could not deserialize user with json:\n" +
+               JSON.stringify(userJson)
+            );
+         }
+         return deserializedUser;
+      });
 
       return new LoadMoreItemsResponse(
          jsonObject._success,
-         jsonObject._items,
+         deserializedUsers,
+         jsonObject._hasMorePages,
+         jsonObject._message
+      );
+   }
+
+   static statusesFromJson(json: JSON): LoadMoreItemsResponse<Status> {
+      interface LoadMoreItemsResponseJson extends ResponseJson {
+         _items: JSON[];
+         _hasMorePages: boolean;
+      }
+
+      const jsonObject: LoadMoreItemsResponseJson = json as unknown as LoadMoreItemsResponseJson;
+      const deserializedStatuses: Status[] = jsonObject._items.map((statusJson: JSON) => {
+         const deserializedStatus = Status.fromJson(JSON.stringify(statusJson));
+         if (deserializedStatus === null) {
+            throw new Error(
+               "LoadMoreItemsResponse, could not deserialize status with json:\n" +
+               JSON.stringify(statusJson)
+            );
+         }
+         return deserializedStatus;
+      });
+
+      return new LoadMoreItemsResponse(
+         jsonObject._success,
+         deserializedStatuses,
          jsonObject._hasMorePages,
          jsonObject._message
       );
