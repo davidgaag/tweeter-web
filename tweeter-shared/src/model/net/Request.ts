@@ -4,6 +4,8 @@ import { User } from "../domain/User";
 
 export class TweeterRequest { }
 
+// TODO: M4: Remove duplication - AuthToken Request that can be subclassed 
+
 export class LoginRequest extends TweeterRequest {
    private _username: string;
    private _password: string;
@@ -188,21 +190,15 @@ export class LoadMoreItemsRequest<T> extends UserRequest {
          _lastItem: User | null;
       }
 
-      // TODO: delete log statements
       const jsonObject: LoadMoreItemsRequestJson = json as unknown as LoadMoreItemsRequestJson;
-      console.log(JSON.stringify(jsonObject));
-      console.log(jsonObject);
       const deserializedToken = AuthToken.fromJson(JSON.stringify(jsonObject._authToken));
-      console.log("Deserialized token: ", deserializedToken);
       const deserializedUser = User.fromJson(JSON.stringify(jsonObject._user));
-      console.log("Deserialized user: ", deserializedUser);
       let deserializedLastItem: User | null;
       if (jsonObject._lastItem !== null) {
          deserializedLastItem = User.fromJson(JSON.stringify(jsonObject._lastItem));
       } else {
          deserializedLastItem = null;
       }
-      console.log("Deserialized last item: ", deserializedLastItem);
 
       if (deserializedToken === null) {
          throw new Error(

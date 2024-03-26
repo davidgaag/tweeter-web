@@ -21,18 +21,18 @@ describe("ServerFacade", () => {
    });
 
    it("gets followers", async () => {
-      const amount = 10;
+      const limit = 10;
 
       let response = await serverFacade.loadMoreFollowers(new LoadMoreItemsRequest<User>(
-         authToken, defaultUser, amount, null));
+         authToken, defaultUser, limit, null));
 
       let followers = response.items;
 
       expect(response.success).toBe(true);
-      expect(followers).toEqual(FakeData.instance.getPageOfUsers(null, amount, defaultUser)[0]);
+      expect(followers).toEqual(FakeData.instance.getPageOfUsers(null, limit, defaultUser)[0]);
 
       response = await serverFacade.loadMoreFollowers(new LoadMoreItemsRequest<User>(
-         authToken, defaultUser, amount, followers[followers.length - 1]));
+         authToken, defaultUser, limit, followers[followers.length - 1]));
       expect(response.success).toBe(true);
       followers.forEach((follower) => { expect(response.items).not.toContain(follower) });
    });
