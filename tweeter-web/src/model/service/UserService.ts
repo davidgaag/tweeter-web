@@ -1,4 +1,4 @@
-import { AuthToken, User, FakeData, LoginRequest, RegisterRequest } from "tweeter-shared";
+import { AuthToken, User, LoginRequest, RegisterRequest, GetUserRequest, LogOutRequest } from "tweeter-shared";
 import { Buffer } from "buffer";
 import { ServerFacade } from "../net/ServerFacade";
 
@@ -9,8 +9,8 @@ export class UserService {
       authToken: AuthToken,
       alias: string
    ): Promise<User | null> {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.findUserByAlias(alias);
+      const response = await this.serverFacade.getUser(new GetUserRequest(authToken, alias));
+      return response.user;
    };
 
    public async login(
@@ -43,7 +43,6 @@ export class UserService {
    };
 
    public async logout(authToken: AuthToken): Promise<void> {
-      // Pause so we can see the logging out message. Delete when the call to the server is implemented.
-      await new Promise((res) => setTimeout(res, 1000));
+      await this.serverFacade.logout(new LogOutRequest(authToken));
    };
 }

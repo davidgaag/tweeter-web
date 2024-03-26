@@ -188,6 +188,7 @@ export class LoadMoreItemsRequest<T> extends UserRequest {
          _lastItem: User | null;
       }
 
+      // TODO: delete log statements
       const jsonObject: LoadMoreItemsRequestJson = json as unknown as LoadMoreItemsRequestJson;
       console.log(JSON.stringify(jsonObject));
       console.log(jsonObject);
@@ -233,10 +234,20 @@ export class LoadMoreItemsRequest<T> extends UserRequest {
          _lastItem: Status | null;
       }
 
+      // TODO: delete log statements
       const jsonObject: LoadMoreItemsRequestJson = json as unknown as LoadMoreItemsRequestJson;
+      console.log(JSON.stringify(jsonObject));
       const deserializedToken = AuthToken.fromJson(JSON.stringify(jsonObject._authToken));
+      console.log("Deserialized token: ", JSON.stringify(deserializedToken));
       const deserializedUser = User.fromJson(JSON.stringify(jsonObject._user));
-      const deserializedLastItem = Status.fromJson(JSON.stringify(jsonObject._lastItem));
+      console.log("Deserialized user: ", JSON.stringify(deserializedUser));
+      let deserializedLastItem: Status | null;
+      if (jsonObject._lastItem !== null) {
+         deserializedLastItem = Status.fromJson(JSON.stringify(jsonObject._lastItem));
+      } else {
+         deserializedLastItem = null;
+      }
+      console.log("Deserialized last item: ", JSON.stringify(deserializedLastItem));
 
       if (deserializedToken === null) {
          throw new Error(
@@ -252,18 +263,134 @@ export class LoadMoreItemsRequest<T> extends UserRequest {
          );
       }
 
-      if (deserializedLastItem === null) {
-         throw new Error(
-            "LoadMoreItemsRequest, could not deserialize last item with json:\n" +
-            JSON.stringify(jsonObject._lastItem)
-         );
-      }
-
       return new LoadMoreItemsRequest(
          deserializedToken,
          deserializedUser,
          jsonObject._pageSize,
          deserializedLastItem
+      );
+   }
+}
+
+export class PostStatusRequest extends TweeterRequest {
+   private _authToken: AuthToken;
+   private _newStatus: Status;
+
+   constructor(authToken: AuthToken, newStatus: Status) {
+      super();
+      this._authToken = authToken;
+      this._newStatus = newStatus;
+   }
+
+   get authToken() {
+      return this._authToken;
+   }
+
+   get newStatus() {
+      return this._newStatus;
+   }
+
+   static fromJson(json: JSON): PostStatusRequest {
+      interface PostStatusRequestJson {
+         _authToken: AuthToken;
+         _newStatus: Status;
+      }
+
+      const jsonObject: PostStatusRequestJson = json as unknown as PostStatusRequestJson;
+      const deserializedToken = AuthToken.fromJson(JSON.stringify(jsonObject._authToken));
+      const deserializedStatus = Status.fromJson(JSON.stringify(jsonObject._newStatus));
+
+      if (deserializedToken === null) {
+         throw new Error(
+            "PostStatusRequest, could not deserialize token with json:\n" +
+            JSON.stringify(jsonObject._authToken)
+         );
+      }
+
+      if (deserializedStatus === null) {
+         throw new Error(
+            "PostStatusRequest, could not deserialize status with json:\n" +
+            JSON.stringify(jsonObject._newStatus)
+         );
+      }
+
+      return new PostStatusRequest(
+         deserializedToken,
+         deserializedStatus
+      );
+   }
+}
+
+export class GetUserRequest extends TweeterRequest {
+   private _authToken: AuthToken;
+   private _alias: string;
+
+   constructor(authToken: AuthToken, alias: string) {
+      super();
+      this._authToken = authToken;
+      this._alias = alias;
+   }
+
+   get authToken() {
+      return this._authToken;
+   }
+
+   get alias() {
+      return this._alias;
+   }
+
+   static fromJson(json: JSON): GetUserRequest {
+      interface GetUserRequestJson {
+         _authToken: AuthToken;
+         _alias: string;
+      }
+
+      const jsonObject: GetUserRequestJson = json as unknown as GetUserRequestJson;
+      const deserializedToken = AuthToken.fromJson(JSON.stringify(jsonObject._authToken));
+
+      if (deserializedToken === null) {
+         throw new Error(
+            "GetUserRequest, could not deserialize token with json:\n" +
+            JSON.stringify(jsonObject._authToken)
+         );
+      }
+
+      return new GetUserRequest(
+         deserializedToken,
+         jsonObject._alias
+      );
+   }
+}
+
+export class LogOutRequest extends TweeterRequest {
+   private _authToken: AuthToken;
+
+   constructor(authToken: AuthToken) {
+      super();
+      this._authToken = authToken;
+   }
+
+   get authToken() {
+      return this._authToken;
+   }
+
+   static fromJson(json: JSON): LogOutRequest {
+      interface LogOutRequestJson {
+         _authToken: AuthToken;
+      }
+
+      const jsonObject: LogOutRequestJson = json as unknown as LogOutRequestJson;
+      const deserializedToken = AuthToken.fromJson(JSON.stringify(jsonObject._authToken));
+
+      if (deserializedToken === null) {
+         throw new Error(
+            "LogOutRequest, could not deserialize token with json:\n" +
+            JSON.stringify(jsonObject._authToken)
+         );
+      }
+
+      return new LogOutRequest(
+         deserializedToken
       );
    }
 }

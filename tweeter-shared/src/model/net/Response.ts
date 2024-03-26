@@ -18,6 +18,20 @@ export class TweeterResponse {
    get message() {
       return this._message;
    }
+
+   static fromJson(json: JSON): TweeterResponse {
+      interface ResponseJson {
+         _success: boolean;
+         _message: string;
+      }
+
+      const jsonObject: ResponseJson = json as unknown as ResponseJson;
+
+      return new TweeterResponse(
+         jsonObject._success,
+         jsonObject._message
+      );
+   }
 }
 
 interface ResponseJson {
@@ -238,6 +252,42 @@ export class LoadMoreItemsResponse<T> extends TweeterResponse {
          jsonObject._success,
          deserializedStatuses,
          jsonObject._hasMorePages,
+         jsonObject._message
+      );
+   }
+}
+
+export class GetUserResponse extends TweeterResponse {
+   private _user: User;
+
+   constructor(success: boolean, user: User, message: string | null) {
+      super(success, message);
+      this._user = user;
+   }
+
+   get user() {
+      return this._user;
+   }
+
+   static fromJson(json: JSON): GetUserResponse {
+      interface GetUserResponseJson extends ResponseJson {
+         _user: JSON;
+      }
+
+      const jsonObject: GetUserResponseJson =
+         json as unknown as GetUserResponseJson;
+      const deserializedUser = User.fromJson(JSON.stringify(jsonObject._user));
+
+      if (deserializedUser === null) {
+         throw new Error(
+            "GetUserResponse, could not deserialize user with json:\n" +
+            JSON.stringify(jsonObject._user)
+         );
+      }
+
+      return new GetUserResponse(
+         jsonObject._success,
+         deserializedUser,
          jsonObject._message
       );
    }

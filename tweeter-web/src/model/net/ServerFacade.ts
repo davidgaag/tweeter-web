@@ -10,15 +10,26 @@ import {
    LoadMoreItemsRequest,
    Status,
    User,
-   LoadMoreItemsResponse
+   LoadMoreItemsResponse,
+   PostStatusRequest,
+   GetUserRequest,
+   LogOutRequest
 } from "tweeter-shared";
 import { ClientCommunicator } from "./ClientCommunicator";
+import { GetUserResponse, TweeterResponse } from "tweeter-shared/dist/model/net/Response";
 
 export class ServerFacade {
 
    private SERVER_URL = "https://7u1ptwdfjb.execute-api.us-east-2.amazonaws.com/beta"; // TODO: Set this value.
 
    private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+   async getUser(request: GetUserRequest) {
+      const endpoint = "/get/user";
+      const response: JSON = await this.clientCommunicator.doPost<GetUserRequest>(request, endpoint);
+
+      return GetUserResponse.fromJson(response);
+   }
 
    async login(request: LoginRequest): Promise<AuthResponse> {
       const endpoint = "/service/login";
@@ -32,6 +43,11 @@ export class ServerFacade {
       const response: JSON = await this.clientCommunicator.doPost<RegisterRequest>(request, endpoint);
 
       return AuthResponse.fromJson(response);
+   }
+
+   async logout(request: LogOutRequest): Promise<void> {
+      const endpoint = "/service/logout";
+      await this.clientCommunicator.doPost<LogOutRequest>(request, endpoint);
    }
 
    async loadMoreFollowers(request: LoadMoreItemsRequest<User>): Promise<LoadMoreItemsResponse<User>> {
@@ -81,5 +97,24 @@ export class ServerFacade {
       const response: JSON = await this.clientCommunicator.doPost<UserRequest>(request, endpoint);
 
       return FollowResponse.fromJson(response);
+   }
+
+   async loadMoreStoryItems(request: LoadMoreItemsRequest<Status>): Promise<LoadMoreItemsResponse<Status>> {
+      const endpoint = "/get/story";
+      const response: JSON = await this.clientCommunicator.doPost<LoadMoreItemsRequest<Status>>(request, endpoint);
+
+      return LoadMoreItemsResponse.statusesFromJson(response);
+   }
+
+   async loadMoreFeedItems(request: LoadMoreItemsRequest<Status>): Promise<LoadMoreItemsResponse<Status>> {
+      const endpoint = "/get/feed";
+      const response: JSON = await this.clientCommunicator.doPost<LoadMoreItemsRequest<Status>>(request, endpoint);
+
+      return LoadMoreItemsResponse.statusesFromJson(response);
+   }
+
+   async postStatus(request: PostStatusRequest): Promise<void> {
+      const endpoint = "/service/poststatus";
+      await this.clientCommunicator.doPost<PostStatusRequest>(request, endpoint);
    }
 }
