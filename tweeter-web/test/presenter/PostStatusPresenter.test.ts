@@ -1,5 +1,5 @@
 import { anything, capture, instance, mock, spy, verify, when } from "ts-mockito";
-import { StatusService } from "../../src/model-service/StatusService";
+import { StatusService } from "../../src/model/service/StatusService";
 import { PostStatusPresenter, PostStatusView } from "../../src/presenter/PostStatusPresenter"
 import { AuthToken, User } from "tweeter-shared";
 
