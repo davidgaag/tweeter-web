@@ -1,6 +1,17 @@
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, FakeData, Follow, User } from "tweeter-shared";
+import { DaoFactory, FollowsDaoInterface, UserDaoInterface } from "../../dao/DaoInterfaces";
+import { Service } from "./Service";
 
-export class FollowService {
+export class FollowService extends Service {
+   private followsDao: FollowsDaoInterface;
+   private userDao: UserDaoInterface;
+
+   constructor(daoFactory: DaoFactory) {
+      super(daoFactory);
+      this.followsDao = daoFactory.getFollowsDao();
+      this.userDao = daoFactory.getUserDao();
+   }
+
    public async loadMoreFollowers(
       authToken: AuthToken,
       user: User,
@@ -50,12 +61,24 @@ export class FollowService {
       authToken: AuthToken,
       userToFollow: User
    ): Promise<[followersCount: number, followeesCount: number]> {
-      // TODO: M4: Real data
+      const followeeAliasWithoutAtSign = this.stripAtSign(userToFollow.alias).toLowerCase();
 
-      let followersCount = await this.getFollowersCount(authToken, userToFollow);
-      let followeesCount = await this.getFolloweesCount(authToken, userToFollow);
+      // Check if users exist
+      const followerAlias = await this.getAssociatedAlias(authToken);
+      const result = await this.tryDbOperation(this.userDao.getUserByAlias(followeeAliasWithoutAtSign));
+      if (!result) {
+         throw new Error("[Not Found] User not found");
+      }
+      const [followee, _] = result;
 
-      return [followersCount, followeesCount];
+      // Follow user and update follow counts
+      await this.tryDbOperation(this.followsDao.putFollow(followerAlias, followee.alias));
+
+      await this.tryDbOperation(this.userDao.incrementFollowees(followerAlias));
+      const followersCount = await this.tryDbOperation(this.userDao.incrementFollowers(followee.alias));
+      const followeesCount = await this.tryDbOperation(this.userDao.getNumFollowees(followerAlias));
+
+      return [followersCount!, followeesCount!]; // TODO: non-null assertion okay here?
    };
 
    public async unfollow(
@@ -69,4 +92,6 @@ export class FollowService {
 
       return [followersCount, followeesCount];
    };
+
+
 }

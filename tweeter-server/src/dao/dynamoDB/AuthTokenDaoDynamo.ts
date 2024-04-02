@@ -20,14 +20,14 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
       await this.client.send(new PutCommand(params));
    }
 
-   public async checkAuthToken(token: AuthToken): Promise<boolean> {
-      const params = {
-         TableName: this.tableName,
-         Key: this.generateAuthTokenKey(token.token)
-      };
-      const output = await this.client.send(new GetCommand(params));
-      return output.Item != undefined;
-   }
+   // public async checkAuthToken(token: AuthToken): Promise<boolean> {
+   //    const params = {
+   //       TableName: this.tableName,
+   //       Key: this.generateAuthTokenKey(token.token)
+   //    };
+   //    const output = await this.client.send(new GetCommand(params));
+   //    return output.Item != undefined;
+   // }
 
    // TODO: Is this necessary?
    public async getAssociatedAlias(token: AuthToken): Promise<string | undefined> {

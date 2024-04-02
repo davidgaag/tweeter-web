@@ -12,9 +12,6 @@ export const GetUserHandler = async (event: JSON): Promise<GetUserResponse> => {
    }
 
    const user = await new UserService(new DynamoDaoFactory()).getUser(request.authToken, request.alias);
-   if (user === null) {
-      throw new Error("[Not Found] User not found");
-   }
 
    // TODO: M4 error handling?
    let response = new GetUserResponse(
