@@ -1,5 +1,6 @@
 import { LogOutRequest, TweeterResponse } from "tweeter-shared";
 import { UserService } from "../model/service/UserService";
+import { DynamoDaoFactory } from "../dao/dynamoDB/DynamoDaoFactory";
 
 export const LogOutHandler = async (event: JSON): Promise<TweeterResponse> => {
    let request: LogOutRequest;
@@ -10,7 +11,7 @@ export const LogOutHandler = async (event: JSON): Promise<TweeterResponse> => {
       throw new Error("[Bad Request] Invalid request");
    }
 
-   await new UserService().logout(request.authToken);
+   await new UserService(new DynamoDaoFactory()).logout(request.authToken);
 
    const response = new TweeterResponse(true, "Logged out successfully");
    return response;

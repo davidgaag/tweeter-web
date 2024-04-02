@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetUserHandler = void 0;
 const tweeter_shared_1 = require("tweeter-shared");
 const UserService_1 = require("../model/service/UserService");
+const DynamoDaoFactory_1 = require("../dao/dynamoDB/DynamoDaoFactory");
 const GetUserHandler = async (event) => {
     let request;
     try {
@@ -12,7 +13,7 @@ const GetUserHandler = async (event) => {
         console.error("GetUserHandler, error parsing request: " + error);
         throw new Error("[Bad Request] Invalid request");
     }
-    const user = await new UserService_1.UserService().getUser(request.authToken, request.alias);
+    const user = await new UserService_1.UserService(new DynamoDaoFactory_1.DynamoDaoFactory()).getUser(request.authToken, request.alias);
     if (user === null) {
         throw new Error("[Not Found] User not found");
     }
