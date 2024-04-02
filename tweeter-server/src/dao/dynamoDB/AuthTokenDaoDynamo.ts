@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { AuthTokenDaoInterface } from "../DaoInterfaces";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { AuthToken } from "tweeter-shared";
@@ -20,6 +20,16 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
       await this.client.send(new PutCommand(params));
    }
 
+   public async checkAuthToken(token: AuthToken): Promise<boolean> {
+      const params = {
+         TableName: this.tableName,
+         Key: this.generateAuthTokenKey(token.token)
+      };
+      const output = await this.client.send(new GetCommand(params));
+      return output.Item != undefined;
+   }
+
+   // TODO: Is this necessary?
    public async getAssociatedAlias(token: AuthToken): Promise<string | undefined> {
       const params = {
          TableName: this.tableName,
@@ -42,6 +52,14 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
          }
       };
       await this.client.send(new UpdateCommand(params));
+   }
+
+   public async deleteAuthToken(token: AuthToken): Promise<void> {
+      const params = {
+         TableName: this.tableName,
+         Key: this.generateAuthTokenKey(token.token)
+      };
+      await this.client.send(new DeleteCommand(params));
    }
 
    private generateAuthTokenItem(token: AuthToken, alias: string) {

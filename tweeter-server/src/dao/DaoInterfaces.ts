@@ -19,8 +19,10 @@ export interface ImageDaoInterface {
 
 export interface AuthTokenDaoInterface {
    putAuthToken(token: AuthToken, alias: string): Promise<void>;
-   getAssociatedAlias(token: AuthToken): Promise<string | undefined>;
+   checkAuthToken(token: AuthToken): Promise<boolean>;
+   getAssociatedAlias(token: AuthToken): Promise<string | undefined>; // TODO: necessary?
    updateTokenExpiration(token: AuthToken): Promise<void>;
+   deleteAuthToken(token: AuthToken): Promise<void>;
 }
 
 export interface FollowsDaoInterface {

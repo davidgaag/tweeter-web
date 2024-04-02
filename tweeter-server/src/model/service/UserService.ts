@@ -1,4 +1,4 @@
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import bcrypt from 'bcryptjs';
 import { AuthTokenDaoInterface, DaoFactory, ImageDaoInterface, UserDaoInterface } from "../../dao/DaoInterfaces";
 
@@ -17,8 +17,20 @@ export class UserService {
       authToken: AuthToken,
       alias: string
    ): Promise<User | null> {
-      // TODO: M4 real data
-      return FakeData.instance.findUserByAlias(alias);
+      const aliasWithoutAtSign = this.stripAtSign(alias).toLowerCase();
+
+      if (!await this.authTokenDao.checkAuthToken(authToken)) {
+         throw new Error("[Unauthorized] Invalid auth token");
+      }
+
+      const result = await this.userDao.getUserByAlias(aliasWithoutAtSign);
+      if (result === undefined) {
+         throw new Error("[Not Found] User not found");
+      }
+
+      const [user, _] = result;
+      user.alias = this.addAtSign(user.alias);
+      return user;
    }
 
    public async login(
@@ -56,7 +68,7 @@ export class UserService {
       userImageStringBase64: string
    ): Promise<[User, AuthToken]> {
       console.log(firstName, lastName, alias, password, "image not shown");
-      const aliasWithoutAtSign = this.stripAtSign(alias);
+      const aliasWithoutAtSign = this.stripAtSign(alias).toLowerCase();
 
       // Check if alias is already taken
       const existingUser = await this.userDao.getUserByAlias(aliasWithoutAtSign);
@@ -75,7 +87,7 @@ export class UserService {
          }
       }
 
-      // Create user if alias is not taken
+      // Create user in database if alias is not taken
       const hashedPassword = await this.hashPassword(password);
       try {
          await this.userDao.putUser(firstName, lastName, aliasWithoutAtSign, imageUrl, hashedPassword);
@@ -83,12 +95,12 @@ export class UserService {
          throw new Error("[Internal Server Error] Could not create user");
       }
 
-      // Create auth token
+      // Create auth token in database
       const authToken = AuthToken.Generate();
       try {
-         await this.authTokenDao.putAuthToken(authToken.token, aliasWithoutAtSign);
+         await this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign);
       } catch (error) {
-         throw new Error("[Internal Server Error] Could not create auth token" + error);
+         throw new Error("[Internal Server Error] Could not create auth token " + error);
       }
 
       const user = new User(firstName, lastName, this.addAtSign(aliasWithoutAtSign), imageUrl);
@@ -96,8 +108,11 @@ export class UserService {
    }
 
    public async logout(authToken: AuthToken): Promise<void> {
-      // TODO: M4
-      console.log("I would have logged out if I were connected to the server.");
+      try {
+         await this.authTokenDao.deleteAuthToken(authToken);
+      } catch (error) {
+         throw new Error("[Internal Server Error] Could not delete auth token");
+      }
    }
 
    private stripAtSign(alias: string) {

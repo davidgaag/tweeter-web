@@ -17,6 +17,23 @@ class AuthTokenDaoDynamo {
         };
         await this.client.send(new lib_dynamodb_1.PutCommand(params));
     }
+    async checkAuthToken(token) {
+        const params = {
+            TableName: this.tableName,
+            Key: this.generateAuthTokenKey(token.token)
+        };
+        const output = await this.client.send(new lib_dynamodb_1.GetCommand(params));
+        return output.Item != undefined;
+    }
+    // TODO: Is this necessary?
+    async getAssociatedAlias(token) {
+        const params = {
+            TableName: this.tableName,
+            Key: this.generateAuthTokenKey(token.token)
+        };
+        const output = await this.client.send(new lib_dynamodb_1.GetCommand(params));
+        return output.Item == undefined ? undefined : output.Item[this.aliasAttr];
+    }
     async updateTokenExpiration(token) {
         const params = {
             TableName: this.tableName,
@@ -30,6 +47,13 @@ class AuthTokenDaoDynamo {
             }
         };
         await this.client.send(new lib_dynamodb_1.UpdateCommand(params));
+    }
+    async deleteAuthToken(token) {
+        const params = {
+            TableName: this.tableName,
+            Key: this.generateAuthTokenKey(token.token)
+        };
+        await this.client.send(new lib_dynamodb_1.DeleteCommand(params));
     }
     generateAuthTokenItem(token, alias) {
         return {

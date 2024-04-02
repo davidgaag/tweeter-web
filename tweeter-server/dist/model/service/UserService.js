@@ -16,8 +16,17 @@ class UserService {
         this.authTokenDao = daoFactory.getAuthTokenDao();
     }
     async getUser(authToken, alias) {
-        // TODO: M4 real data
-        return tweeter_shared_1.FakeData.instance.findUserByAlias(alias);
+        const aliasWithoutAtSign = this.stripAtSign(alias);
+        if (!await this.authTokenDao.checkAuthToken(authToken)) {
+            throw new Error("[Unauthorized] Invalid auth token");
+        }
+        const result = await this.userDao.getUserByAlias(aliasWithoutAtSign);
+        if (result === undefined) {
+            throw new Error("[Not Found] User not found");
+        }
+        const [user, _] = result;
+        user.alias = this.addAtSign(user.alias);
+        return user;
     }
     async login(alias, password) {
         const aliasWithoutAtSign = this.stripAtSign(alias);
@@ -61,7 +70,7 @@ class UserService {
                 throw new Error("[Internal Server Error] Could not save image");
             }
         }
-        // Create user if alias is not taken
+        // Create user in database if alias is not taken
         const hashedPassword = await this.hashPassword(password);
         try {
             await this.userDao.putUser(firstName, lastName, aliasWithoutAtSign, imageUrl, hashedPassword);
@@ -69,20 +78,24 @@ class UserService {
         catch (error) {
             throw new Error("[Internal Server Error] Could not create user");
         }
-        // Create auth token
+        // Create auth token in database
         const authToken = tweeter_shared_1.AuthToken.Generate();
         try {
-            await this.authTokenDao.putAuthToken(authToken.token, aliasWithoutAtSign);
+            await this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign);
         }
         catch (error) {
-            throw new Error("[Internal Server Error] Could not create auth token" + error);
+            throw new Error("[Internal Server Error] Could not create auth token " + error);
         }
         const user = new tweeter_shared_1.User(firstName, lastName, this.addAtSign(aliasWithoutAtSign), imageUrl);
         return [user, authToken];
     }
     async logout(authToken) {
-        // TODO: M4
-        console.log("I would have logged out if I were connected to the server.");
+        try {
+            await this.authTokenDao.deleteAuthToken(authToken);
+        }
+        catch (error) {
+            throw new Error("[Internal Server Error] Could not delete auth token");
+        }
     }
     stripAtSign(alias) {
         if (alias[0] === '@') {
