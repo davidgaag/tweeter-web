@@ -13,7 +13,7 @@ export class UserDaoDynamo implements UserDaoInterface {
 
    private readonly client = DynamoDBDocumentClient.from(new DynamoDBClient());
 
-   public async getUserByAlias(alias: string): Promise<User | undefined> {
+   public async getUserByAlias(alias: string): Promise<[User, string] | undefined> {
       const params = {
          TableName: this.tableName,
          Key: this.generateUserKey(alias)
@@ -21,12 +21,13 @@ export class UserDaoDynamo implements UserDaoInterface {
       const output = await this.client.send(new GetCommand(params));
       return output.Item == undefined
          ? undefined
-         : new User(
+         : [new User(
             output.Item[this.firstNameAttr],
             output.Item[this.lastNameAttr],
             output.Item[this.aliasAttr],
             output.Item[this.imageUrlAtrr]
-         );
+         ),
+         output.Item[this.passwordAttr]];
    }
 
    public async putUser(firstName: string, lastName: string, alias: string, imageUrl: string, hashedPassword: string): Promise<void> {

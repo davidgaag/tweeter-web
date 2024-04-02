@@ -14,12 +14,12 @@ export class ImageDaoS3 implements ImageDaoInterface {
          Body: decodedImageBuffer,
          ContentType: "image/png",
          ACL: ObjectCannedACL.public_read
-      }
+      };
       const command = new PutObjectCommand(s3Params);
       const client = new S3Client({ region: this.REGION });
       try {
          await client.send(command);
-         return "https://{this.BUCKET}.s3.{this.REGION}.amazonaws.com/{this.directory}{alias}";
+         return `https://${this.BUCKET}.s3.${this.REGION}.amazonaws.com/${this.directory}${alias}`;
       } catch (error) {
          console.error(error);
          throw new Error("S3 put image failed with: " + error);

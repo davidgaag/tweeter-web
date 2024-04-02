@@ -1,4 +1,4 @@
-import { User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 
 export interface DaoFactory {
    getUserDao: () => UserDaoInterface;
@@ -9,7 +9,7 @@ export interface DaoFactory {
 }
 
 export interface UserDaoInterface {
-   getUserByAlias(alias: string): Promise<User | undefined>;
+   getUserByAlias(alias: string): Promise<[User, string] | undefined>;
    putUser(firstName: string, lastName: string, alias: string, imageUrl: string, hashedPassword: string): Promise<void>;
 }
 
@@ -18,7 +18,9 @@ export interface ImageDaoInterface {
 }
 
 export interface AuthTokenDaoInterface {
-   putAuthToken(token: string, alias: string): Promise<void>;
+   putAuthToken(token: AuthToken, alias: string): Promise<void>;
+   getAssociatedAlias(token: AuthToken): Promise<string | undefined>;
+   updateTokenExpiration(token: AuthToken): Promise<void>;
 }
 
 export interface FollowsDaoInterface {

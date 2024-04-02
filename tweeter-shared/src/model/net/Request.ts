@@ -23,6 +23,19 @@ export class LoginRequest extends TweeterRequest {
    get password() {
       return this._password;
    }
+
+   static fromJson(json: JSON): LoginRequest {
+      interface LoginRequestJson {
+         _username: string;
+         _password: string;
+      }
+
+      const jsonObject: LoginRequestJson = json as unknown as LoginRequestJson;
+      return new LoginRequest(
+         jsonObject._username,
+         jsonObject._password
+      );
+   }
 }
 
 export class RegisterRequest extends TweeterRequest {
@@ -59,6 +72,25 @@ export class RegisterRequest extends TweeterRequest {
 
    get imageStringBase64() {
       return this._imageStringBase64;
+   }
+
+   static fromJson(json: JSON): RegisterRequest {
+      interface RegisterRequestJson {
+         _firstName: string;
+         _lastName: string;
+         _alias: string;
+         _password: string;
+         _imageStringBase64: string;
+      }
+
+      const jsonObject: RegisterRequestJson = json as unknown as RegisterRequestJson;
+      return new RegisterRequest(
+         jsonObject._firstName,
+         jsonObject._lastName,
+         jsonObject._alias,
+         jsonObject._password,
+         jsonObject._imageStringBase64
+      );
    }
 }
 

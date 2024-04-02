@@ -20,7 +20,8 @@ class UserDaoDynamo {
         const output = await this.client.send(new lib_dynamodb_1.GetCommand(params));
         return output.Item == undefined
             ? undefined
-            : new tweeter_shared_1.User(output.Item[this.firstNameAttr], output.Item[this.lastNameAttr], output.Item[this.aliasAttr], output.Item[this.imageUrlAtrr]);
+            : [new tweeter_shared_1.User(output.Item[this.firstNameAttr], output.Item[this.lastNameAttr], output.Item[this.aliasAttr], output.Item[this.imageUrlAtrr]),
+                output.Item[this.passwordAttr]];
     }
     async putUser(firstName, lastName, alias, imageUrl, hashedPassword) {
         const params = {

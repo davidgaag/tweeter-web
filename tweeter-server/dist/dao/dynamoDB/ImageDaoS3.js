@@ -19,7 +19,7 @@ class ImageDaoS3 {
         const client = new client_s3_1.S3Client({ region: this.REGION });
         try {
             await client.send(command);
-            return "https://{this.BUCKET}.s3.{this.REGION}.amazonaws.com/{this.directory}{alias}";
+            return `https://${this.BUCKET}.s3.${this.REGION}.amazonaws.com/${this.directory}${alias}`;
         }
         catch (error) {
             console.error(error);

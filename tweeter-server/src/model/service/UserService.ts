@@ -1,5 +1,5 @@
 import { AuthToken, FakeData, User } from "tweeter-shared";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { AuthTokenDaoInterface, DaoFactory, ImageDaoInterface, UserDaoInterface } from "../../dao/DaoInterfaces";
 
 export class UserService {
@@ -19,24 +19,34 @@ export class UserService {
    ): Promise<User | null> {
       // TODO: M4 real data
       return FakeData.instance.findUserByAlias(alias);
-   };
+   }
 
    public async login(
       alias: string,
       password: string
    ): Promise<[User, AuthToken]> {
+      const aliasWithoutAtSign = this.stripAtSign(alias);
 
-      // return await bcrypt.compare(password, hash);
+      const result = await this.userDao.getUserByAlias(aliasWithoutAtSign);
+      if (result === undefined) {
+         throw new Error("[Unauthorized] Invalid alias or password");
+      };
 
-      // TODO: M4 real data
-      let user = FakeData.instance.firstUser;
+      const [user, hashedPassword] = result;
+      if (await this.comparePasswords(password, hashedPassword)) {
+         const authToken = AuthToken.Generate();
+         try {
+            await this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign);
+         } catch (error) {
+            throw new Error("[Internal Server Error] Could not create auth token");
+         }
 
-      if (user === null) {
-         throw new Error("Invalid alias or password");
+         user.alias = this.addAtSign(user.alias);
+         return [user, authToken];
+      } else {
+         throw new Error("[Unauthorized] Invalid alias or password");
       }
-
-      return [user, FakeData.instance.authToken];
-   };
+   }
 
    public async register(
       firstName: string,
@@ -45,19 +55,21 @@ export class UserService {
       password: string,
       userImageStringBase64: string
    ): Promise<[User, AuthToken]> {
+      console.log(firstName, lastName, alias, password, "image not shown");
       const aliasWithoutAtSign = this.stripAtSign(alias);
 
       // Check if alias is already taken
-      const existingUser = this.userDao.getUserByAlias(aliasWithoutAtSign);
+      const existingUser = await this.userDao.getUserByAlias(aliasWithoutAtSign);
+      console.log(existingUser);
       if (existingUser !== undefined) {
          throw new Error("[Conflict] Alias is already taken");
       }
 
       // Save image
-      let imageUrl = "";
+      let imageUrl = "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png";
       if (userImageStringBase64 !== "") {
          try {
-            imageUrl = await this.imageDao.putImage(aliasWithoutAtSign, userImageStringBase64);
+            imageUrl = await this.imageDao.putImage(userImageStringBase64, aliasWithoutAtSign);
          } catch (error) {
             throw new Error("[Internal Server Error] Could not save image");
          }
@@ -76,17 +88,17 @@ export class UserService {
       try {
          await this.authTokenDao.putAuthToken(authToken.token, aliasWithoutAtSign);
       } catch (error) {
-         throw new Error("[Internal Server Error] Could not create auth token");
+         throw new Error("[Internal Server Error] Could not create auth token" + error);
       }
 
       const user = new User(firstName, lastName, this.addAtSign(aliasWithoutAtSign), imageUrl);
       return [user, authToken];
-   };
+   }
 
    public async logout(authToken: AuthToken): Promise<void> {
       // TODO: M4
       console.log("I would have logged out if I were connected to the server.");
-   };
+   }
 
    private stripAtSign(alias: string) {
       if (alias[0] === '@') {
@@ -109,5 +121,9 @@ export class UserService {
          .then(salt => {
             return bcrypt.hash(password, salt);
          });
+   }
+
+   private async comparePasswords(password: string, hashedPassword: string): Promise<boolean> {
+      return await bcrypt.compare(password, hashedPassword);
    }
 }
