@@ -1,5 +1,6 @@
 import { FollowResponse, UserRequest } from "tweeter-shared";
 import { FollowService } from "../model/service/FollowService";
+import { DynamoDaoFactory } from "../dao/dynamoDB/DynamoDaoFactory";
 
 export const UnfollowHandler = async (event: JSON): Promise<FollowResponse> => {
    let request: UserRequest;
@@ -12,7 +13,7 @@ export const UnfollowHandler = async (event: JSON): Promise<FollowResponse> => {
 
    let response = new FollowResponse(
       true,
-      ...await new FollowService().unfollow(request.authToken, request.user),
+      ...await new FollowService(new DynamoDaoFactory()).unfollow(request.authToken, request.user),
       "Unfollow successful");
    return response;
 };

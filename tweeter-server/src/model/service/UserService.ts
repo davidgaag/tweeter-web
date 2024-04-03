@@ -43,16 +43,16 @@ export class UserService extends Service {
       };
 
       const [user, hashedPassword] = result;
-      if (await this.tryDbOperation(this.comparePasswords(password, hashedPassword))) {
-         const authToken = AuthToken.Generate();
-
-         await this.tryDbOperation(this.authTokenDao.deleteAuthToken(authToken));
-
-         user.alias = this.addAtSign(user.alias);
-         return [user, authToken];
-      } else {
+      if (!await this.comparePasswords(password, hashedPassword)) {
          throw new Error("[Unauthorized] Invalid alias or password");
       }
+
+      const authToken = AuthToken.Generate();
+
+      await this.tryDbOperation(this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign));
+
+      user.alias = this.addAtSign(user.alias);
+      return [user, authToken];
    }
 
    public async register(

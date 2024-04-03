@@ -46,7 +46,7 @@ export abstract class PagedItemPresenter<T, U> extends Presenter<PagedItemView<T
             this.lastItem = newItems[newItems.length - 1];
             this.view.addItems(newItems);
          }
-      }, "load followees");
+      }, this.getItemDescription());
    };
 
    protected abstract createService(): U;

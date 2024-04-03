@@ -143,59 +143,6 @@ export class UserRequest extends TweeterRequest {
    }
 }
 
-export class IsFollowerRequest extends UserRequest {
-   private _selectedUser: User;
-
-   constructor(authToken: AuthToken, user: User, selectedUser: User) {
-      super(authToken, user);
-      this._selectedUser = selectedUser;
-   }
-
-   get selectedUser() {
-      return this._selectedUser;
-   }
-
-   static fromJson(json: JSON): IsFollowerRequest {
-      interface IsFollowerRequestJson {
-         _authToken: AuthToken;
-         _user: User;
-         _selectedUser: User;
-      }
-
-      const jsonObject: IsFollowerRequestJson = json as unknown as IsFollowerRequestJson;
-      const deserializedToken = AuthToken.fromJson(JSON.stringify(jsonObject._authToken));
-      const deserializedUser = User.fromJson(JSON.stringify(jsonObject._user));
-      const deserializedSelectedUser = User.fromJson(JSON.stringify(jsonObject._selectedUser));
-
-      if (deserializedToken === null) {
-         throw new Error(
-            "IsFollowerRequest, could not deserialize token with json:\n" +
-            JSON.stringify(jsonObject._authToken)
-         );
-      }
-
-      if (deserializedUser === null) {
-         throw new Error(
-            "IsFollowerRequest, could not deserialize user with json:\n" +
-            JSON.stringify(jsonObject._user)
-         );
-      }
-
-      if (deserializedSelectedUser === null) {
-         throw new Error(
-            "IsFollowerRequest, could not deserialize selected user with json:\n" +
-            JSON.stringify(jsonObject._selectedUser)
-         );
-      }
-
-      return new IsFollowerRequest(
-         deserializedToken,
-         deserializedUser,
-         deserializedSelectedUser
-      );
-   }
-}
-
 export class LoadMoreItemsRequest<T> extends UserRequest {
    _pageSize: number;
    _lastItem: T | null;

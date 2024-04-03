@@ -1,4 +1,4 @@
-import { AuthToken, User, FakeData, IsFollowerRequest, LoadMoreItemsRequest } from "tweeter-shared";
+import { AuthToken, User, LoadMoreItemsRequest } from "tweeter-shared";
 import { ServerFacade } from "../net/ServerFacade";
 import { UserRequest } from "tweeter-shared";
 
@@ -29,11 +29,10 @@ export class FollowService {
 
    public async getIsFollowerStatus(
       authToken: AuthToken,
-      user: User,
-      selectedUser: User
+      user: User
    ): Promise<boolean> {
       return (await this.serverFacade.getIsFollowerStatus(
-         new IsFollowerRequest(authToken, user, selectedUser))).isFollower;
+         new UserRequest(authToken, user))).isFollower;
    };
 
    public async getFolloweesCount(

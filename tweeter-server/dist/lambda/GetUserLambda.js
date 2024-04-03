@@ -14,9 +14,6 @@ const GetUserHandler = async (event) => {
         throw new Error("[Bad Request] Invalid request");
     }
     const user = await new UserService_1.UserService(new DynamoDaoFactory_1.DynamoDaoFactory()).getUser(request.authToken, request.alias);
-    if (user === null) {
-        throw new Error("[Not Found] User not found");
-    }
     // TODO: M4 error handling?
     let response = new tweeter_shared_1.GetUserResponse(true, user, "Get user successful");
     return response;

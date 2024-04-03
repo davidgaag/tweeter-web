@@ -6,22 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const tweeter_shared_1 = require("tweeter-shared");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-class UserService {
+const Service_1 = require("./Service");
+class UserService extends Service_1.Service {
     userDao;
     imageDao;
-    authTokenDao;
     constructor(daoFactory) {
+        super(daoFactory);
         this.userDao = daoFactory.getUserDao();
         this.imageDao = daoFactory.getImageDao();
-        this.authTokenDao = daoFactory.getAuthTokenDao();
     }
     async getUser(authToken, alias) {
-        const aliasWithoutAtSign = this.stripAtSign(alias);
-        if (!await this.authTokenDao.checkAuthToken(authToken)) {
-            throw new Error("[Unauthorized] Invalid auth token");
-        }
-        const result = await this.userDao.getUserByAlias(aliasWithoutAtSign);
-        if (result === undefined) {
+        const aliasWithoutAtSign = this.stripAtSign(alias).toLowerCase();
+        await this.getAssociatedAlias(authToken);
+        const result = await this.tryDbOperation(this.userDao.getUserByAlias(aliasWithoutAtSign));
+        if (!result) {
             throw new Error("[Not Found] User not found");
         }
         const [user, _] = result;
@@ -30,84 +28,45 @@ class UserService {
     }
     async login(alias, password) {
         const aliasWithoutAtSign = this.stripAtSign(alias);
-        const result = await this.userDao.getUserByAlias(aliasWithoutAtSign);
-        if (result === undefined) {
+        const result = await this.tryDbOperation(this.userDao.getUserByAlias(aliasWithoutAtSign));
+        if (!result) {
             throw new Error("[Unauthorized] Invalid alias or password");
         }
         ;
         const [user, hashedPassword] = result;
-        if (await this.comparePasswords(password, hashedPassword)) {
-            const authToken = tweeter_shared_1.AuthToken.Generate();
-            try {
-                await this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign);
-            }
-            catch (error) {
-                throw new Error("[Internal Server Error] Could not create auth token");
-            }
-            user.alias = this.addAtSign(user.alias);
-            return [user, authToken];
-        }
-        else {
+        if (!await this.comparePasswords(password, hashedPassword)) {
             throw new Error("[Unauthorized] Invalid alias or password");
         }
+        const authToken = tweeter_shared_1.AuthToken.Generate();
+        await this.tryDbOperation(this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign));
+        user.alias = this.addAtSign(user.alias);
+        return [user, authToken];
     }
     async register(firstName, lastName, alias, password, userImageStringBase64) {
         console.log(firstName, lastName, alias, password, "image not shown");
-        const aliasWithoutAtSign = this.stripAtSign(alias);
+        const aliasWithoutAtSign = this.stripAtSign(alias).toLowerCase();
         // Check if alias is already taken
-        const existingUser = await this.userDao.getUserByAlias(aliasWithoutAtSign);
+        const existingUser = await this.tryDbOperation(this.userDao.getUserByAlias(aliasWithoutAtSign));
         console.log(existingUser);
-        if (existingUser !== undefined) {
+        if (existingUser) {
             throw new Error("[Conflict] Alias is already taken");
         }
         // Save image
         let imageUrl = "https://faculty.cs.byu.edu/~jwilkerson/cs340/tweeter/images/donald_duck.png";
         if (userImageStringBase64 !== "") {
-            try {
-                imageUrl = await this.imageDao.putImage(userImageStringBase64, aliasWithoutAtSign);
-            }
-            catch (error) {
-                throw new Error("[Internal Server Error] Could not save image");
-            }
+            imageUrl = await this.tryDbOperation(this.imageDao.putImage(userImageStringBase64, aliasWithoutAtSign));
         }
         // Create user in database if alias is not taken
         const hashedPassword = await this.hashPassword(password);
-        try {
-            await this.userDao.putUser(firstName, lastName, aliasWithoutAtSign, imageUrl, hashedPassword);
-        }
-        catch (error) {
-            throw new Error("[Internal Server Error] Could not create user");
-        }
+        await this.tryDbOperation(this.userDao.putUser(firstName, lastName, aliasWithoutAtSign, imageUrl, hashedPassword));
         // Create auth token in database
         const authToken = tweeter_shared_1.AuthToken.Generate();
-        try {
-            await this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign);
-        }
-        catch (error) {
-            throw new Error("[Internal Server Error] Could not create auth token " + error);
-        }
+        await this.tryDbOperation(this.authTokenDao.putAuthToken(authToken, aliasWithoutAtSign));
         const user = new tweeter_shared_1.User(firstName, lastName, this.addAtSign(aliasWithoutAtSign), imageUrl);
         return [user, authToken];
     }
     async logout(authToken) {
-        try {
-            await this.authTokenDao.deleteAuthToken(authToken);
-        }
-        catch (error) {
-            throw new Error("[Internal Server Error] Could not delete auth token");
-        }
-    }
-    stripAtSign(alias) {
-        if (alias[0] === '@') {
-            return alias.substring(1);
-        }
-        return alias;
-    }
-    addAtSign(alias) {
-        if (alias[0] !== '@') {
-            return '@' + alias;
-        }
-        return alias;
+        await this.tryDbOperation(this.authTokenDao.deleteAuthToken(authToken));
     }
     async hashPassword(password) {
         const saltRounds = 10;

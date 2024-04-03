@@ -28,7 +28,7 @@ export class Service {
       try {
          return await operation;
       } catch (error) {
-         throw new Error("[Internal Server Error] Could not complete operation");
+         throw new Error("[Internal Server Error] Could not complete operation. " + error);
       }
    }
 

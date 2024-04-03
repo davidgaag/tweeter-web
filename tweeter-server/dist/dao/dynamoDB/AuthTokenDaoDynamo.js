@@ -17,14 +17,14 @@ class AuthTokenDaoDynamo {
         };
         await this.client.send(new lib_dynamodb_1.PutCommand(params));
     }
-    async checkAuthToken(token) {
-        const params = {
-            TableName: this.tableName,
-            Key: this.generateAuthTokenKey(token.token)
-        };
-        const output = await this.client.send(new lib_dynamodb_1.GetCommand(params));
-        return output.Item != undefined;
-    }
+    // public async checkAuthToken(token: AuthToken): Promise<boolean> {
+    //    const params = {
+    //       TableName: this.tableName,
+    //       Key: this.generateAuthTokenKey(token.token)
+    //    };
+    //    const output = await this.client.send(new GetCommand(params));
+    //    return output.Item != undefined;
+    // }
     // TODO: Is this necessary?
     async getAssociatedAlias(token) {
         const params = {

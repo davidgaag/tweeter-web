@@ -12,7 +12,6 @@ export { TweeterRequest } from "./model/net/Request";
 export { LoginRequest } from "./model/net/Request";
 export { RegisterRequest } from "./model/net/Request";
 export { UserRequest } from "./model/net/Request";
-export { IsFollowerRequest } from "./model/net/Request";
 export { LoadMoreItemsRequest } from "./model/net/Request";
 export { PostStatusRequest } from "./model/net/Request";
 export { GetUserRequest } from "./model/net/Request";

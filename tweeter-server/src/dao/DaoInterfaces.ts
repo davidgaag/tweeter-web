@@ -1,4 +1,5 @@
 import { AuthToken, User } from "tweeter-shared";
+import { DataPage } from "../model/DataPage";
 
 export interface DaoFactory {
    getUserDao: () => UserDaoInterface;
@@ -10,6 +11,7 @@ export interface DaoFactory {
 
 export interface UserDaoInterface {
    getUserByAlias(alias: string): Promise<[User, string] | undefined>;
+   getUsersByAlias(aliases: string[]): Promise<User[]>;
    putUser(firstName: string, lastName: string, alias: string, imageUrl: string, hashedPassword: string): Promise<void>;
    getNumFollowers(alias: string): Promise<number | undefined>;
    getNumFollowees(alias: string): Promise<number | undefined>;
@@ -32,7 +34,11 @@ export interface AuthTokenDaoInterface {
 }
 
 export interface FollowsDaoInterface {
+   getMoreFollowers(alias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>>;
+   getMoreFollowees(alias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>>;
+   getFollowingStatus(followerAlias: string, followeeAlias: string): Promise<boolean>;
    putFollow(followerAlias: string, followeeAlias: string): Promise<void>;
+   deleteFollow(followerAlias: string, followeeAlias: string): Promise<void>;
 }
 
 

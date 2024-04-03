@@ -5,7 +5,6 @@ import {
    UserRequest,
    UserCountResponse,
    FollowResponse,
-   IsFollowerRequest,
    IsFollowerResponse,
    LoadMoreItemsRequest,
    Status,
@@ -64,7 +63,7 @@ export class ServerFacade {
       return LoadMoreItemsResponse.usersFromJson(response);
    }
 
-   async getIsFollowerStatus(request: IsFollowerRequest): Promise<IsFollowerResponse> {
+   async getIsFollowerStatus(request: UserRequest): Promise<IsFollowerResponse> {
       const endpoint = "/get/isfollower";
       const response: JSON = await this.clientCommunicator.doPost<UserRequest>(request, endpoint);
 

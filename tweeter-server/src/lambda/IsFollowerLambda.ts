@@ -1,10 +1,12 @@
-import { IsFollowerRequest, IsFollowerResponse } from "tweeter-shared";
+import { IsFollowerResponse } from "tweeter-shared";
 import { FollowService } from "../model/service/FollowService";
+import { DynamoDaoFactory } from "../dao/dynamoDB/DynamoDaoFactory";
+import { UserRequest } from "tweeter-shared";
 
 export const IsFollowerHandler = async (event: JSON): Promise<IsFollowerResponse> => {
-   let request: IsFollowerRequest;
+   let request: UserRequest;
    try {
-      request = IsFollowerRequest.fromJson(event);
+      request = UserRequest.fromJson(event);
    } catch (error) {
       console.error("IsFollowerHandler, error parsing request: " + error);
       throw new Error("[Bad Request] Invalid request");
@@ -12,7 +14,7 @@ export const IsFollowerHandler = async (event: JSON): Promise<IsFollowerResponse
 
    let response = new IsFollowerResponse(
       true,
-      await new FollowService().getIsFollowerStatus(request.authToken, request.user, request.selectedUser),
+      await new FollowService(new DynamoDaoFactory()).getIsFollowerStatus(request.authToken, request.user),
       "Following check successful");
    return response;
 };

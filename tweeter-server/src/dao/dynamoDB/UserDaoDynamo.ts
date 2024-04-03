@@ -1,7 +1,7 @@
 import { User } from "tweeter-shared";
 import { UserDaoInterface } from "../DaoInterfaces";
 import { DynamoDBClient, ReturnValue } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { BatchGetCommand, DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 export class UserDaoDynamo implements UserDaoInterface {
    private tableName = "user";
@@ -30,6 +30,26 @@ export class UserDaoDynamo implements UserDaoInterface {
             output.Item[this.imageUrlAtrr]
          ),
          output.Item[this.passwordAttr]];
+   }
+
+   public async getUsersByAlias(aliases: string[]): Promise<User[]> {
+      const params = {
+         RequestItems: {
+            [this.tableName]: {
+               Keys: aliases.map(alias => this.generateUserKey(alias))
+            }
+         }
+      };
+
+      const output = await this.client.send(new BatchGetCommand(params));
+      return output.Responses == undefined
+         ? []
+         : output.Responses[this.tableName].map((item: any) => new User(
+            item[this.firstNameAttr],
+            item[this.lastNameAttr],
+            item[this.aliasAttr],
+            item[this.imageUrlAtrr]
+         ));
    }
 
    public async putUser(firstName: string, lastName: string, alias: string, imageUrl: string, hashedPassword: string): Promise<void> {
@@ -70,7 +90,9 @@ export class UserDaoDynamo implements UserDaoInterface {
          Key: this.generateUserKey(alias),
          ProjectionExpression: attribute
       };
+      console.log("params:", params);
       const output = await this.client.send(new GetCommand(params));
+      console.log("output:", output);
       return output.Item == undefined ? undefined : output.Item[attribute];
    }
 
@@ -82,13 +104,13 @@ export class UserDaoDynamo implements UserDaoInterface {
             [`#${attribute}`]: attribute // numFollowers or numFollowees
          },
          ExpressionAttributeValues: {
-            ":increment": { N: "1" }
+            ":increment": 1
          },
          UpdateExpression: `ADD #${attribute} :increment`,
          ReturnValues: ReturnValue.UPDATED_NEW
       };
       const output = await this.client.send(new UpdateCommand(params));
-      return output.Attributes == undefined ? undefined : output.Attributes[this.numFollowersAttr];
+      return output.Attributes == undefined ? undefined : output.Attributes[attribute];
    }
 
    private async decrementFollowCount(alias: string, attribute: string): Promise<number | undefined> {
@@ -99,13 +121,13 @@ export class UserDaoDynamo implements UserDaoInterface {
             [`#${attribute}`]: attribute // numFollowers or numFollowees
          },
          ExpressionAttributeValues: {
-            ":decrement": { N: "-1" }
+            ":decrement": -1
          },
          UpdateExpression: `ADD #${attribute} :decrement`,
          ReturnValues: ReturnValue.UPDATED_NEW
       };
       const output = await this.client.send(new UpdateCommand(params));
-      return output.Attributes == undefined ? undefined : output.Attributes[this.numFollowersAttr];
+      return output.Attributes == undefined ? undefined : output.Attributes[attribute];
    }
 
    private generateUserItem(firstName: string, lastName: string, alias: string, imageUrl: string, hashedPassword: string) {
