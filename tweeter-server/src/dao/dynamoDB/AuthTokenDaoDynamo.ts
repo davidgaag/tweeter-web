@@ -18,23 +18,16 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
       await client.send(new PutCommand(params));
    }
 
-   // public async checkAuthToken(token: AuthToken): Promise<boolean> {
-   //    const params = {
-   //       TableName: this.tableName,
-   //       Key: this.generateAuthTokenKey(token.token)
-   //    };
-   //    const output = await client.send(new GetCommand(params));
-   //    return output.Item != undefined;
-   // }
-
-   // TODO: Is this necessary?
    public async getAssociatedAlias(token: AuthToken): Promise<string | undefined> {
       const params = {
          TableName: this.tableName,
          Key: this.generateAuthTokenKey(token.token)
       };
       const output = await client.send(new GetCommand(params));
-      return output.Item == undefined ? undefined : output.Item[this.aliasAttr];
+      if (output.Item == undefined) {
+         return undefined;
+      }
+      return this.checkExpired(output.Item[this.createdAtAttr]) ? undefined : output.Item[this.aliasAttr];
    }
 
    public async updateTokenExpiration(token: AuthToken): Promise<void> {
@@ -78,5 +71,9 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
    private calculateExpiration() {
       // Calculate the expiration time (one hour from now) in epoch second format
       return Math.floor(createTimeStamp() + 60 * 60);
+   }
+
+   private checkExpired(timestampInSeconds: number): boolean {
+      return timestampInSeconds < createTimeStamp();
    }
 }
