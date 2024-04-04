@@ -3,9 +3,16 @@ import { FollowsDaoInterface } from "../DaoInterfaces";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DataPage } from "../../model/DataPage";
 
+class ConditionalCheckFailedException extends Error {
+   constructor(message?: string) {
+      super(message);
+      this.name = "ConditionalCheckFailedException";
+   }
+}
+
 export class FollowsDaoDynamo implements FollowsDaoInterface {
    readonly tableName = "follows";
-   readonly indexName = "follows_index";
+   readonly indexName = "followee_handle-follower_handle-index";
    readonly followerHandleAttr = "follower_handle";
    // readonly followerNameAttr = "follower_name";
    readonly followeeHandleAttr = "followee_handle";
@@ -21,20 +28,39 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
       return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followerHandleAttr, false);
    }
 
-   public async putFollow(followerAlias: string, followeeAlias: string): Promise<void> {
+   public async putFollow(followerAlias: string, followeeAlias: string): Promise<boolean> {
       const params = {
          TableName: this.tableName,
-         Item: this.generateFollowItem(followerAlias, followeeAlias)
+         Item: this.generateFollowItem(followerAlias, followeeAlias),
+         ConditionExpression: "attribute_not_exists(follower_handle) AND attribute_not_exists(followee_handle)"
       };
-      await this.client.send(new PutCommand(params));
+
+      try {
+         await this.client.send(new PutCommand(params));
+      } catch (error) {
+         if (error instanceof ConditionalCheckFailedException) {
+            return false;
+         }
+         throw error;
+      }
+      return true;
    }
 
-   public async deleteFollow(followerAlias: string, followeeAlias: string): Promise<void> {
+   public async deleteFollow(followerAlias: string, followeeAlias: string): Promise<boolean> {
       const params = {
          TableName: this.tableName,
-         Key: this.generateFollowItem(followerAlias, followeeAlias)
+         Key: this.generateFollowItem(followerAlias, followeeAlias),
+         ConditionExpression: "attribute_exists(follower_handle) AND attribute_exists(followee_handle)"
       };
-      await this.client.send(new DeleteCommand(params));
+      try {
+         await this.client.send(new DeleteCommand(params));
+      } catch (error) {
+         if (error instanceof ConditionalCheckFailedException) {
+            return false;
+         }
+         throw error;
+      }
+      return true;
    }
 
    public async getFollowingStatus(followerAlias: string, followeeAlias: string): Promise<boolean> {
@@ -52,6 +78,13 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
       lastAlias: string | null,
       attributeName: string,
       useIndex: boolean): Promise<DataPage<string>> {
+      let sortKeyAttribute: string;
+      if (attributeName === this.followerHandleAttr) {
+         sortKeyAttribute = this.followeeHandleAttr;
+      } else {
+         sortKeyAttribute = this.followerHandleAttr;
+      }
+
       const params: {
          KeyConditionExpression: string;
          ExpressionAttributeValues: { [key: string]: string };
@@ -82,7 +115,7 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
       const aliases: string[] = [];
       const data = await this.client.send(new QueryCommand(params));
       const hasMorePages = data.LastEvaluatedKey !== undefined;
-      data.Items?.forEach((item) => aliases.push(item[this.followerHandleAttr]));
+      data.Items?.forEach((item) => aliases.push(item[sortKeyAttribute]));
       return new DataPage(aliases, hasMorePages);
    }
 

@@ -5,6 +5,7 @@ export const PAGE_SIZE = 10;
 
 export interface PagedItemView<T> extends View {
    addItems: (items: T[]) => void;
+   setHasMoreItems: (hasMore: boolean) => void;
 }
 
 export abstract class PagedItemPresenter<T, U> extends Presenter<PagedItemView<T>> {
@@ -27,6 +28,7 @@ export abstract class PagedItemPresenter<T, U> extends Presenter<PagedItemView<T
 
    protected set hasMoreItems(value: boolean) {
       this._hasMoreItems = value;
+      this.view.setHasMoreItems(value);
    }
 
    protected get lastItem(): T | null {
@@ -41,13 +43,17 @@ export abstract class PagedItemPresenter<T, U> extends Presenter<PagedItemView<T
       this.doFailureReportingOperation(async () => {
          if (this.hasMoreItems) {
             let [newItems, hasMore] = await this.getMoreItems(authToken, user);
-
             this.hasMoreItems = hasMore;
             this.lastItem = newItems[newItems.length - 1];
             this.view.addItems(newItems);
          }
       }, this.getItemDescription());
    };
+
+   public reset() {
+      this.hasMoreItems = true;
+      this.lastItem = null;
+   }
 
    protected abstract createService(): U;
    protected abstract getMoreItems(authToken: AuthToken, user: User): Promise<[T[], boolean]>;

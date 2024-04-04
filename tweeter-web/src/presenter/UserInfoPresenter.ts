@@ -40,6 +40,9 @@ export class UserInfoPresenter extends Presenter<UserInfoView> {
       this.doFailureReportingOperation(async () => this.view.setFollowersCount(await this.service.getFollowersCount(authToken, user)), "get followers count"); // TODO: string correct?
    };
 
+   // FIXME: follow and unfollow user can get undefined follow counts,
+   // which causes view to not display the numbers
+
    public async followUser(user: User, authToken: AuthToken) {
       this.doFailureReportingOperation(async () => {
          this.view.displayInfoMessage(`Adding ${user.name} to followers...`, 0);

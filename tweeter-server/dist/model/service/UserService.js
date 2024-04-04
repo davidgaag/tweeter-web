@@ -43,11 +43,9 @@ class UserService extends Service_1.Service {
         return [user, authToken];
     }
     async register(firstName, lastName, alias, password, userImageStringBase64) {
-        console.log(firstName, lastName, alias, password, "image not shown");
         const aliasWithoutAtSign = this.stripAtSign(alias).toLowerCase();
         // Check if alias is already taken
         const existingUser = await this.tryDbOperation(this.userDao.getUserByAlias(aliasWithoutAtSign));
-        console.log(existingUser);
         if (existingUser) {
             throw new Error("[Conflict] Alias is already taken");
         }

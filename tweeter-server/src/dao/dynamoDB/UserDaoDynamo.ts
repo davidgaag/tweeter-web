@@ -90,9 +90,7 @@ export class UserDaoDynamo implements UserDaoInterface {
          Key: this.generateUserKey(alias),
          ProjectionExpression: attribute
       };
-      console.log("params:", params);
       const output = await this.client.send(new GetCommand(params));
-      console.log("output:", output);
       return output.Item == undefined ? undefined : output.Item[attribute];
    }
 

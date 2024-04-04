@@ -62,12 +62,10 @@ export class UserService extends Service {
       password: string,
       userImageStringBase64: string
    ): Promise<[User, AuthToken]> {
-      console.log(firstName, lastName, alias, password, "image not shown");
       const aliasWithoutAtSign = this.stripAtSign(alias).toLowerCase();
 
       // Check if alias is already taken
       const existingUser = await this.tryDbOperation(this.userDao.getUserByAlias(aliasWithoutAtSign));
-      console.log(existingUser);
       if (existingUser) {
          throw new Error("[Conflict] Alias is already taken");
       }

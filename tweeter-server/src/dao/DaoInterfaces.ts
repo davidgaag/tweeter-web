@@ -37,8 +37,8 @@ export interface FollowsDaoInterface {
    getMoreFollowers(alias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>>;
    getMoreFollowees(alias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>>;
    getFollowingStatus(followerAlias: string, followeeAlias: string): Promise<boolean>;
-   putFollow(followerAlias: string, followeeAlias: string): Promise<void>;
-   deleteFollow(followerAlias: string, followeeAlias: string): Promise<void>;
+   putFollow(followerAlias: string, followeeAlias: string): Promise<boolean>;
+   deleteFollow(followerAlias: string, followeeAlias: string): Promise<boolean>;
 }
 
 

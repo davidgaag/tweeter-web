@@ -211,18 +211,14 @@ export class LoadMoreItemsRequest<T> extends UserRequest {
 
       // TODO: delete log statements
       const jsonObject: LoadMoreItemsRequestJson = json as unknown as LoadMoreItemsRequestJson;
-      console.log(JSON.stringify(jsonObject));
       const deserializedToken = AuthToken.fromJson(JSON.stringify(jsonObject._authToken));
-      console.log("Deserialized token: ", JSON.stringify(deserializedToken));
       const deserializedUser = User.fromJson(JSON.stringify(jsonObject._user));
-      console.log("Deserialized user: ", JSON.stringify(deserializedUser));
       let deserializedLastItem: Status | null;
       if (jsonObject._lastItem !== null) {
          deserializedLastItem = Status.fromJson(JSON.stringify(jsonObject._lastItem));
       } else {
          deserializedLastItem = null;
       }
-      console.log("Deserialized last item: ", JSON.stringify(deserializedLastItem));
 
       if (deserializedToken === null) {
          throw new Error(

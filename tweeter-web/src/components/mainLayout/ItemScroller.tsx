@@ -12,6 +12,7 @@ interface Props<T, U> {
 export const ItemScroller = <T, U>(props: Props<T, U>) => {
    const { displayErrorMessage } = useToastListener();
    const [items, setItems] = useState<T[]>([]);
+   const [hasMoreItems, setHasMoreItems] = useState(true);
 
    // Required to allow the addItems method to see the current value of 'items'
    // instead of the value from when the closure was created.
@@ -22,13 +23,17 @@ export const ItemScroller = <T, U>(props: Props<T, U>) => {
 
    // Load initial items
    useEffect(() => {
+      setItems([]);
+      // Clear lastItem and hasMoreItems state in presenter
+      presenter.reset();
       loadMoreItems();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, []);
+   }, [displayedUser]);
 
    const listener: PagedItemView<T> = {
       addItems: (newItems: T[]) =>
          setItems([...itemsReference.current, ...newItems]),
+      setHasMoreItems: setHasMoreItems,
       displayErrorMessage: displayErrorMessage
    };
 
@@ -44,7 +49,7 @@ export const ItemScroller = <T, U>(props: Props<T, U>) => {
             className="pr-0 mr-0"
             dataLength={items.length}
             next={loadMoreItems}
-            hasMore={presenter.hasMoreItems}
+            hasMore={hasMoreItems}
             loader={<h4>Loading...</h4>}
          >
             {items.map((item, index) => (

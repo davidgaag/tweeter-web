@@ -69,9 +69,7 @@ class UserDaoDynamo {
             Key: this.generateUserKey(alias),
             ProjectionExpression: attribute
         };
-        console.log("params:", params);
         const output = await this.client.send(new lib_dynamodb_1.GetCommand(params));
-        console.log("output:", output);
         return output.Item == undefined ? undefined : output.Item[attribute];
     }
     async incrementFollowCount(alias, attribute) {
