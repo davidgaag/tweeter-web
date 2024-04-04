@@ -53,16 +53,17 @@ class UserDaoDynamo {
         return await this.getFollowCount(alias, this.numFolloweesAttr);
     }
     async incrementFollowers(alias) {
-        return await this.incrementFollowCount(alias, this.numFollowersAttr);
+        return await this.incOrDecFollowCount(alias, this.numFollowersAttr, 1);
     }
     async decrementFollowers(alias) {
-        return await this.decrementFollowCount(alias, this.numFollowersAttr);
+        return await this.incOrDecFollowCount(alias, this.numFollowersAttr, -1);
+        // return await this.decrementFollowCount(alias, this.numFollowersAttr);
     }
     async incrementFollowees(alias) {
-        return await this.incrementFollowCount(alias, this.numFolloweesAttr);
+        return await this.incOrDecFollowCount(alias, this.numFolloweesAttr, 1);
     }
     async decrementFollowees(alias) {
-        return await this.decrementFollowCount(alias, this.numFolloweesAttr);
+        return await this.incOrDecFollowCount(alias, this.numFolloweesAttr, -1);
     }
     async getFollowCount(alias, attribute) {
         const params = {
@@ -73,7 +74,7 @@ class UserDaoDynamo {
         const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.GetCommand(params));
         return output.Item == undefined ? undefined : output.Item[attribute];
     }
-    async incrementFollowCount(alias, attribute) {
+    async incOrDecFollowCount(alias, attribute, increment) {
         const params = {
             TableName: this.tableName,
             Key: this.generateUserKey(alias),
@@ -81,25 +82,9 @@ class UserDaoDynamo {
                 [`#${attribute}`]: attribute // numFollowers or numFollowees
             },
             ExpressionAttributeValues: {
-                ":increment": 1
+                ":increment": increment
             },
             UpdateExpression: `ADD #${attribute} :increment`,
-            ReturnValues: client_dynamodb_1.ReturnValue.UPDATED_NEW
-        };
-        const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.UpdateCommand(params));
-        return output.Attributes == undefined ? undefined : output.Attributes[attribute];
-    }
-    async decrementFollowCount(alias, attribute) {
-        const params = {
-            TableName: this.tableName,
-            Key: this.generateUserKey(alias),
-            ExpressionAttributeNames: {
-                [`#${attribute}`]: attribute // numFollowers or numFollowees
-            },
-            ExpressionAttributeValues: {
-                ":decrement": -1
-            },
-            UpdateExpression: `ADD #${attribute} :decrement`,
             ReturnValues: client_dynamodb_1.ReturnValue.UPDATED_NEW
         };
         const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.UpdateCommand(params));

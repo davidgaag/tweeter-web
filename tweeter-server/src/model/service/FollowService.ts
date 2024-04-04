@@ -16,20 +16,7 @@ export class FollowService extends Service {
       pageSize: number,
       lastItem: User | null
    ): Promise<[User[], boolean]> {
-      const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
-      await this.getAssociatedAlias(authToken);
-
-      const dataPage = await this.tryDbOperation(
-         this.followsDao.getMoreFollowers(aliasWithoutAtSign, pageSize, lastItem?.alias ?? null));
-      if (dataPage.values.length === 0) {
-         return [[], false];
-      }
-
-      const followers = await this.tryDbOperation(this.userDao.getUsersByAlias(dataPage.values));
-      for (let follower of followers) {
-         follower.alias = this.addAtSign(follower.alias);
-      }
-      return [followers, dataPage.hasMorePages];
+      return await this.loadMoreFollows(authToken, user, pageSize, lastItem, true);
    };
 
    public async loadMoreFollowees(
@@ -38,22 +25,7 @@ export class FollowService extends Service {
       pageSize: number,
       lastItem: User | null
    ): Promise<[User[], boolean]> {
-      const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
-      await this.getAssociatedAlias(authToken);
-
-      console.log("before getMoreFollowees");
-      const dataPage = await this.tryDbOperation(
-         this.followsDao.getMoreFollowees(aliasWithoutAtSign, pageSize, lastItem?.alias ?? null));
-      if (dataPage.values.length === 0) {
-         return [[], false];
-      }
-
-      console.log("before getUsersByAlias")
-      const followees = await this.tryDbOperation(this.userDao.getUsersByAlias(dataPage.values));
-      for (let followee of followees) {
-         followee.alias = this.addAtSign(followee.alias);
-      }
-      return [followees, dataPage.hasMorePages];
+      return await this.loadMoreFollows(authToken, user, pageSize, lastItem, false);
    };
 
    public async getIsFollowerStatus(
@@ -63,95 +35,128 @@ export class FollowService extends Service {
       const followeeAliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
       const followerAlias = await this.getAssociatedAlias(authToken);
 
-      return await this.tryDbOperation(this.followsDao.getFollowingStatus(followerAlias, followeeAliasWithoutAtSign));
+      return await this.tryDbOperation(
+         this.followsDao.getFollowingStatus(followerAlias, followeeAliasWithoutAtSign)
+      );
    };
 
-   public async getFolloweesCount(
-      authToken: AuthToken,
-      user: User
-   ): Promise<number> {
+   public async getFollowersCount(authToken: AuthToken, user: User) {
+      return this.getFollowCount(authToken, user, true);
+   };
+
+   public async getFolloweesCount(authToken: AuthToken, user: User) {
+      return this.getFollowCount(authToken, user, false);
+   };
+
+   public async follow(authToken: AuthToken, userToFollow: User):
+      Promise<[followersCount: number, followeesCount: number]> {
+      return this.doFollowOperation(authToken, userToFollow, true);
+   };
+
+   public async unfollow(authToken: AuthToken, userToUnfollow: User):
+      Promise<[followersCount: number, followeesCount: number]> {
+      return this.doFollowOperation(authToken, userToUnfollow, false);
+   };
+
+   private async loadMoreFollows(authToken: AuthToken,
+      user: User, pageSize: number,
+      lastItem: User | null,
+      isFollowers: boolean)
+      : Promise<[User[], boolean]> {
       const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
       await this.getAssociatedAlias(authToken);
 
-      const followeesCount = await this.tryDbOperation(this.userDao.getNumFollowees(aliasWithoutAtSign));
-      if (followeesCount === undefined) {
-         throw new Error("[Not Found] User not found");
+      const dataPage = await this.tryDbOperation(
+         isFollowers
+            ? this.followsDao.getMoreFollowers(
+               aliasWithoutAtSign,
+               pageSize,
+               lastItem?.alias ?? null
+            )
+            : this.followsDao.getMoreFollowees(
+               aliasWithoutAtSign,
+               pageSize,
+               lastItem?.alias ?? null
+            )
+      );
+
+      if (dataPage.values.length === 0) {
+         return [[], false];
       }
 
-      return followeesCount;
-   };
+      const follows = await this.tryDbOperation(this.userDao.getUsersByAlias(dataPage.values));
+      for (let follow of follows) {
+         follow.alias = this.addAtSign(follow.alias);
+      }
+      return [follows, dataPage.hasMorePages];
+   }
 
-   public async getFollowersCount(
-      authToken: AuthToken,
-      user: User
-   ): Promise<number> {
+   private async getFollowCount(authToken: AuthToken, user: User, isFollowers: boolean) {
       const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
       await this.getAssociatedAlias(authToken);
 
-      const followersCount = await this.tryDbOperation(this.userDao.getNumFollowers(aliasWithoutAtSign));
-      if (followersCount === undefined) {
+      const count = await this.tryDbOperation(
+         isFollowers
+            ? this.userDao.getNumFollowers(aliasWithoutAtSign)
+            : this.userDao.getNumFollowees(aliasWithoutAtSign)
+      );
+      if (count === undefined) {
          throw new Error("[Not Found] User not found");
       }
 
-      return followersCount;
-   };
+      return count;
+   }
 
-   public async follow(
-      authToken: AuthToken,
-      userToFollow: User
-   ): Promise<[followersCount: number, followeesCount: number]> {
-      const followeeAliasWithoutAtSign = this.stripAtSign(userToFollow.alias).toLowerCase();
+   private async doFollowOperation(authToken: AuthToken, targetUser: User, isFollow: boolean):
+      Promise<[followersCount: number, followeesCount: number]> {
+      const followeeAliasWithoutAtSign = this.stripAtSign(targetUser.alias).toLowerCase();
 
       // Check if users exist
       const followerAlias = await this.getAssociatedAlias(authToken);
       if (followerAlias === followeeAliasWithoutAtSign) {
-         throw new Error("[Bad Request] Cannot follow yourself");
+         throw new Error("[Bad Request] Cannot follow/unfollow yourself");
       }
-      const result = await this.tryDbOperation(this.userDao.getUserByAlias(followeeAliasWithoutAtSign));
+      const result = await this.tryDbOperation(
+         this.userDao.getUserByAlias(followeeAliasWithoutAtSign)
+      );
       if (!result) {
          throw new Error("[Not Found] User not found");
       }
 
-      // Follow user 
-      if (!await this.tryDbOperation(this.followsDao.putFollow(followerAlias, followeeAliasWithoutAtSign))) {
-         throw new Error("[Conflict] Already following user");
+      // Follow/unfollow user
+      if (isFollow) {
+         if (!await this.tryDbOperation(
+            this.followsDao.putFollow(followerAlias, followeeAliasWithoutAtSign)
+         )) {
+            throw new Error("[Conflict] Already following user");
+         }
+      } else {
+         if (!await this.tryDbOperation(
+            this.followsDao.deleteFollow(followerAlias, followeeAliasWithoutAtSign)
+         )) {
+            throw new Error("[Not Found] Not following user");
+         }
       }
 
-      // Increment follow counts
-      await this.tryDbOperation(this.userDao.incrementFollowees(followerAlias));
-      const followersCount = await this.tryDbOperation(this.userDao.incrementFollowers(followeeAliasWithoutAtSign));
-
-      // Get followee count for newly followed user (unchanged by the follow operation)
-      const followeesCount = await this.tryDbOperation(this.userDao.getNumFollowees(followeeAliasWithoutAtSign));
-
-      return [followersCount!, followeesCount!];
-   };
-
-   public async unfollow(
-      authToken: AuthToken,
-      userToUnfollow: User
-   ): Promise<[followersCount: number, followeesCount: number]> {
-      const followeeAliasWithoutAtSign = this.stripAtSign(userToUnfollow.alias).toLowerCase();
-
-      // Check if users exist
-      const followerAlias = await this.getAssociatedAlias(authToken);
-      const result = await this.tryDbOperation(this.userDao.getUserByAlias(followeeAliasWithoutAtSign));
-      if (!result) {
-         throw new Error("[Not Found] User not found");
+      // Increment/decrement follow counts
+      let followersCount: number;
+      if (isFollow) {
+         await this.tryDbOperation(this.userDao.incrementFollowees(followerAlias));
+         followersCount = (await this.tryDbOperation(
+            this.userDao.incrementFollowers(followeeAliasWithoutAtSign)
+         ))!;
+      } else {
+         await this.tryDbOperation(this.userDao.decrementFollowees(followerAlias));
+         followersCount = (await this.tryDbOperation(
+            this.userDao.decrementFollowers(followeeAliasWithoutAtSign)
+         ))!;
       }
 
-      // Unfollow user
-      if (!await this.tryDbOperation(this.followsDao.deleteFollow(followerAlias, followeeAliasWithoutAtSign))) {
-         throw new Error("[Not Found] Not following user");
-      }
+      // Get followee count for target user (which was unchanged by the follow/unfollow operation)
+      const followeesCount = (await this.tryDbOperation(
+         this.userDao.getNumFollowees(followeeAliasWithoutAtSign)
+      ))!;
 
-      // Decrement follow counts
-      await this.tryDbOperation(this.userDao.decrementFollowees(followerAlias));
-      const followersCount = await this.tryDbOperation(this.userDao.decrementFollowers(followeeAliasWithoutAtSign));
-
-      // Get followee count for newly unfollowed user (unchanged by the unfollow operation)
-      const followeesCount = await this.tryDbOperation(this.userDao.getNumFollowees(followeeAliasWithoutAtSign));
-
-      return [followersCount!, followeesCount!];
-   };
+      return [followersCount, followeesCount];
+   }
 }

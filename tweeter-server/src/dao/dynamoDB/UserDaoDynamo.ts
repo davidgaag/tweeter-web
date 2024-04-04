@@ -69,19 +69,19 @@ export class UserDaoDynamo implements UserDaoInterface {
    }
 
    public async incrementFollowers(alias: string): Promise<number | undefined> {
-      return await this.incrementFollowCount(alias, this.numFollowersAttr);
+      return await this.incOrDecFollowCount(alias, this.numFollowersAttr, 1);
    }
 
    public async decrementFollowers(alias: string): Promise<number | undefined> {
-      return await this.decrementFollowCount(alias, this.numFollowersAttr);
+      return await this.incOrDecFollowCount(alias, this.numFollowersAttr, -1);
    }
 
    public async incrementFollowees(alias: string): Promise<number | undefined> {
-      return await this.incrementFollowCount(alias, this.numFolloweesAttr);
+      return await this.incOrDecFollowCount(alias, this.numFolloweesAttr, 1);
    }
 
    public async decrementFollowees(alias: string): Promise<number | undefined> {
-      return await this.decrementFollowCount(alias, this.numFolloweesAttr);
+      return await this.incOrDecFollowCount(alias, this.numFolloweesAttr, -1);
    }
 
    private async getFollowCount(alias: string, attribute: string): Promise<number | undefined> {
@@ -94,7 +94,7 @@ export class UserDaoDynamo implements UserDaoInterface {
       return output.Item == undefined ? undefined : output.Item[attribute];
    }
 
-   private async incrementFollowCount(alias: string, attribute: string): Promise<number | undefined> {
+   private async incOrDecFollowCount(alias: string, attribute: string, increment: number): Promise<number | undefined> {
       const params = {
          TableName: this.tableName,
          Key: this.generateUserKey(alias),
@@ -102,26 +102,9 @@ export class UserDaoDynamo implements UserDaoInterface {
             [`#${attribute}`]: attribute // numFollowers or numFollowees
          },
          ExpressionAttributeValues: {
-            ":increment": 1
+            ":increment": increment
          },
          UpdateExpression: `ADD #${attribute} :increment`,
-         ReturnValues: ReturnValue.UPDATED_NEW
-      };
-      const output = await client.send(new UpdateCommand(params));
-      return output.Attributes == undefined ? undefined : output.Attributes[attribute];
-   }
-
-   private async decrementFollowCount(alias: string, attribute: string): Promise<number | undefined> {
-      const params = {
-         TableName: this.tableName,
-         Key: this.generateUserKey(alias),
-         ExpressionAttributeNames: {
-            [`#${attribute}`]: attribute // numFollowers or numFollowees
-         },
-         ExpressionAttributeValues: {
-            ":decrement": -1
-         },
-         UpdateExpression: `ADD #${attribute} :decrement`,
          ReturnValues: ReturnValue.UPDATED_NEW
       };
       const output = await client.send(new UpdateCommand(params));
