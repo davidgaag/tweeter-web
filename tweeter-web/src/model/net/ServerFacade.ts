@@ -12,7 +12,7 @@ import {
    LoadMoreItemsResponse,
    PostStatusRequest,
    GetUserRequest,
-   LogOutRequest
+   AuthTokenRequest
 } from "tweeter-shared";
 import { ClientCommunicator } from "./ClientCommunicator";
 import { GetUserResponse, TweeterResponse } from "tweeter-shared/dist/model/net/Response";
@@ -44,9 +44,9 @@ export class ServerFacade {
       return AuthResponse.fromJson(response);
    }
 
-   async logout(request: LogOutRequest): Promise<void> {
+   async logout(request: AuthTokenRequest): Promise<void> {
       const endpoint = "/service/logout";
-      await this.clientCommunicator.doPost<LogOutRequest>(request, endpoint);
+      await this.clientCommunicator.doPost<AuthTokenRequest>(request, endpoint);
    }
 
    async loadMoreFollowers(request: LoadMoreItemsRequest<User>): Promise<LoadMoreItemsResponse<User>> {

@@ -1,13 +1,15 @@
 import { AuthToken } from "tweeter-shared";
-import { AuthTokenDaoInterface, DaoFactory } from "../../dao/DaoInterfaces";
+import { AuthTokenDaoInterface, DaoFactory, UserDaoInterface } from "../../dao/DaoInterfaces";
 
 // TODO: Consts/enum for error messages?
 
 export class Service {
    protected authTokenDao: AuthTokenDaoInterface;
+   protected userDao: UserDaoInterface;
 
    constructor(daoFactory: DaoFactory) {
       this.authTokenDao = daoFactory.getAuthTokenDao();
+      this.userDao = daoFactory.getUserDao();
    }
 
    protected stripAtSign(alias: string) {

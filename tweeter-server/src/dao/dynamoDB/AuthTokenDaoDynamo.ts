@@ -2,7 +2,7 @@ import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCo
 import { AuthTokenDaoInterface } from "../DaoInterfaces";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { AuthToken } from "tweeter-shared";
-
+import { client, createTimeStamp } from "./DynamoDaoFactory";
 export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
    private tableName = "authToken";
    private readonly tokenAttr = "token";
@@ -10,14 +10,12 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
    private readonly createdAtAttr = "createdAt";
    private readonly expirationAttr = "expiration";
 
-   private readonly client = DynamoDBDocumentClient.from(new DynamoDBClient());
-
    public async putAuthToken(token: AuthToken, alias: string): Promise<void> {
       const params = {
          TableName: this.tableName,
          Item: this.generateAuthTokenItem(token, alias)
       };
-      await this.client.send(new PutCommand(params));
+      await client.send(new PutCommand(params));
    }
 
    // public async checkAuthToken(token: AuthToken): Promise<boolean> {
@@ -25,7 +23,7 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
    //       TableName: this.tableName,
    //       Key: this.generateAuthTokenKey(token.token)
    //    };
-   //    const output = await this.client.send(new GetCommand(params));
+   //    const output = await client.send(new GetCommand(params));
    //    return output.Item != undefined;
    // }
 
@@ -35,7 +33,7 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
          TableName: this.tableName,
          Key: this.generateAuthTokenKey(token.token)
       };
-      const output = await this.client.send(new GetCommand(params));
+      const output = await client.send(new GetCommand(params));
       return output.Item == undefined ? undefined : output.Item[this.aliasAttr];
    }
 
@@ -51,7 +49,7 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
             ":expiration": this.calculateExpiration()
          }
       };
-      await this.client.send(new UpdateCommand(params));
+      await client.send(new UpdateCommand(params));
    }
 
    public async deleteAuthToken(token: AuthToken): Promise<void> {
@@ -59,7 +57,7 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
          TableName: this.tableName,
          Key: this.generateAuthTokenKey(token.token)
       };
-      await this.client.send(new DeleteCommand(params));
+      await client.send(new DeleteCommand(params));
    }
 
    private generateAuthTokenItem(token: AuthToken, alias: string) {
@@ -79,6 +77,6 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
 
    private calculateExpiration() {
       // Calculate the expiration time (one hour from now) in epoch second format
-      return Math.floor((new Date().getTime() / 1000) + 60 * 60);
+      return Math.floor(createTimeStamp() + 60 * 60);
    }
 }

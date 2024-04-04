@@ -4,12 +4,10 @@ import { DaoFactory, ImageDaoInterface, UserDaoInterface } from "../../dao/DaoIn
 import { Service } from "./Service";
 
 export class UserService extends Service {
-   private userDao: UserDaoInterface;
    private imageDao: ImageDaoInterface;
 
    constructor(daoFactory: DaoFactory) {
       super(daoFactory);
-      this.userDao = daoFactory.getUserDao();
       this.imageDao = daoFactory.getImageDao();
    }
 

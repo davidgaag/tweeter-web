@@ -2,7 +2,7 @@ import { User } from "tweeter-shared";
 import { UserDaoInterface } from "../DaoInterfaces";
 import { DynamoDBClient, ReturnValue } from '@aws-sdk/client-dynamodb';
 import { BatchGetCommand, DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-
+import { client } from "./DynamoDaoFactory";
 export class UserDaoDynamo implements UserDaoInterface {
    private tableName = "user";
    private readonly firstNameAttr = "firstName";
@@ -20,7 +20,7 @@ export class UserDaoDynamo implements UserDaoInterface {
          TableName: this.tableName,
          Key: this.generateUserKey(alias)
       };
-      const output = await this.client.send(new GetCommand(params));
+      const output = await client.send(new GetCommand(params));
       return output.Item == undefined
          ? undefined
          : [new User(
@@ -41,7 +41,7 @@ export class UserDaoDynamo implements UserDaoInterface {
          }
       };
 
-      const output = await this.client.send(new BatchGetCommand(params));
+      const output = await client.send(new BatchGetCommand(params));
       return output.Responses == undefined
          ? []
          : output.Responses[this.tableName].map((item: any) => new User(
@@ -57,7 +57,7 @@ export class UserDaoDynamo implements UserDaoInterface {
          TableName: this.tableName,
          Item: this.generateUserItem(firstName, lastName, alias, imageUrl, hashedPassword)
       }
-      await this.client.send(new PutCommand(params));
+      await client.send(new PutCommand(params));
    }
 
    public async getNumFollowers(alias: string): Promise<number | undefined> {
@@ -90,7 +90,7 @@ export class UserDaoDynamo implements UserDaoInterface {
          Key: this.generateUserKey(alias),
          ProjectionExpression: attribute
       };
-      const output = await this.client.send(new GetCommand(params));
+      const output = await client.send(new GetCommand(params));
       return output.Item == undefined ? undefined : output.Item[attribute];
    }
 
@@ -107,7 +107,7 @@ export class UserDaoDynamo implements UserDaoInterface {
          UpdateExpression: `ADD #${attribute} :increment`,
          ReturnValues: ReturnValue.UPDATED_NEW
       };
-      const output = await this.client.send(new UpdateCommand(params));
+      const output = await client.send(new UpdateCommand(params));
       return output.Attributes == undefined ? undefined : output.Attributes[attribute];
    }
 
@@ -124,7 +124,7 @@ export class UserDaoDynamo implements UserDaoInterface {
          UpdateExpression: `ADD #${attribute} :decrement`,
          ReturnValues: ReturnValue.UPDATED_NEW
       };
-      const output = await this.client.send(new UpdateCommand(params));
+      const output = await client.send(new UpdateCommand(params));
       return output.Attributes == undefined ? undefined : output.Attributes[attribute];
    }
 

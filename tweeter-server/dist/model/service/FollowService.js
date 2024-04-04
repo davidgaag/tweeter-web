@@ -4,11 +4,9 @@ exports.FollowService = void 0;
 const Service_1 = require("./Service");
 class FollowService extends Service_1.Service {
     followsDao;
-    userDao;
     constructor(daoFactory) {
         super(daoFactory);
         this.followsDao = daoFactory.getFollowsDao();
-        this.userDao = daoFactory.getUserDao();
     }
     async loadMoreFollowers(authToken, user, pageSize, lastItem) {
         const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
@@ -70,6 +68,9 @@ class FollowService extends Service_1.Service {
         const followeeAliasWithoutAtSign = this.stripAtSign(userToFollow.alias).toLowerCase();
         // Check if users exist
         const followerAlias = await this.getAssociatedAlias(authToken);
+        if (followerAlias === followeeAliasWithoutAtSign) {
+            throw new Error("[Bad Request] Cannot follow yourself");
+        }
         const result = await this.tryDbOperation(this.userDao.getUserByAlias(followeeAliasWithoutAtSign));
         if (!result) {
             throw new Error("[Not Found] User not found");

@@ -2,6 +2,7 @@ import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCom
 import { FollowsDaoInterface } from "../DaoInterfaces";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DataPage } from "../../model/DataPage";
+import { client } from "./DynamoDaoFactory";
 
 class ConditionalCheckFailedException extends Error {
    constructor(message?: string) {
@@ -18,13 +19,11 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
    readonly followeeHandleAttr = "followee_handle";
    // readonly followeeNameAttr = "followee_name";
 
-   private readonly client = DynamoDBDocumentClient.from(new DynamoDBClient());
-
-   public async getMoreFollowers(userAlias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>> {
+   public async getMoreFollowers(userAlias: string, pageSize: number | null, lastAlias: string | null): Promise<DataPage<string>> {
       return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followeeHandleAttr, true);
    }
 
-   public async getMoreFollowees(userAlias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>> {
+   public async getMoreFollowees(userAlias: string, pageSize: number | null, lastAlias: string | null): Promise<DataPage<string>> {
       return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followerHandleAttr, false);
    }
 
@@ -36,7 +35,7 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
       };
 
       try {
-         await this.client.send(new PutCommand(params));
+         await client.send(new PutCommand(params));
       } catch (error) {
          if (error instanceof ConditionalCheckFailedException) {
             return false;
@@ -53,7 +52,7 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
          ConditionExpression: "attribute_exists(follower_handle) AND attribute_exists(followee_handle)"
       };
       try {
-         await this.client.send(new DeleteCommand(params));
+         await client.send(new DeleteCommand(params));
       } catch (error) {
          if (error instanceof ConditionalCheckFailedException) {
             return false;
@@ -68,13 +67,13 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
          TableName: this.tableName,
          Key: this.generateFollowItem(followerAlias, followeeAlias)
       };
-      const data = await this.client.send(new GetCommand(params));
+      const data = await client.send(new GetCommand(params));
       return data.Item !== undefined;
    }
 
    private async getMoreFollows(
       userAlias: string,
-      pageSize: number,
+      pageSize: number | null,
       lastAlias: string | null,
       attributeName: string,
       useIndex: boolean): Promise<DataPage<string>> {
@@ -89,7 +88,7 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
          KeyConditionExpression: string;
          ExpressionAttributeValues: { [key: string]: string };
          TableName: string;
-         Limit: number;
+         Limit?: number;
          ExclusiveStartKey?: { [key: string]: string };
          IndexName?: string;
       } = {
@@ -98,7 +97,6 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
             ":userAlias": userAlias,
          },
          TableName: this.tableName,
-         Limit: pageSize,
          ExclusiveStartKey:
             lastAlias === null
                ? undefined
@@ -112,8 +110,12 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
          params.IndexName = this.indexName;
       }
 
+      if (pageSize !== null) {
+         params.Limit = pageSize;
+      }
+
       const aliases: string[] = [];
-      const data = await this.client.send(new QueryCommand(params));
+      const data = await client.send(new QueryCommand(params));
       const hasMorePages = data.LastEvaluatedKey !== undefined;
       data.Items?.forEach((item) => aliases.push(item[sortKeyAttribute]));
       return new DataPage(aliases, hasMorePages);

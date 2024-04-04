@@ -4,8 +4,10 @@ exports.Service = void 0;
 // TODO: Consts/enum for error messages?
 class Service {
     authTokenDao;
+    userDao;
     constructor(daoFactory) {
         this.authTokenDao = daoFactory.getAuthTokenDao();
+        this.userDao = daoFactory.getUserDao();
     }
     stripAtSign(alias) {
         if (alias[0] === '@') {

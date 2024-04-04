@@ -4,6 +4,7 @@ exports.UserDaoDynamo = void 0;
 const tweeter_shared_1 = require("tweeter-shared");
 const client_dynamodb_1 = require("@aws-sdk/client-dynamodb");
 const lib_dynamodb_1 = require("@aws-sdk/lib-dynamodb");
+const DynamoDaoFactory_1 = require("./DynamoDaoFactory");
 class UserDaoDynamo {
     tableName = "user";
     firstNameAttr = "firstName";
@@ -19,7 +20,7 @@ class UserDaoDynamo {
             TableName: this.tableName,
             Key: this.generateUserKey(alias)
         };
-        const output = await this.client.send(new lib_dynamodb_1.GetCommand(params));
+        const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.GetCommand(params));
         return output.Item == undefined
             ? undefined
             : [new tweeter_shared_1.User(output.Item[this.firstNameAttr], output.Item[this.lastNameAttr], output.Item[this.aliasAttr], output.Item[this.imageUrlAtrr]),
@@ -33,7 +34,7 @@ class UserDaoDynamo {
                 }
             }
         };
-        const output = await this.client.send(new lib_dynamodb_1.BatchGetCommand(params));
+        const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.BatchGetCommand(params));
         return output.Responses == undefined
             ? []
             : output.Responses[this.tableName].map((item) => new tweeter_shared_1.User(item[this.firstNameAttr], item[this.lastNameAttr], item[this.aliasAttr], item[this.imageUrlAtrr]));
@@ -43,7 +44,7 @@ class UserDaoDynamo {
             TableName: this.tableName,
             Item: this.generateUserItem(firstName, lastName, alias, imageUrl, hashedPassword)
         };
-        await this.client.send(new lib_dynamodb_1.PutCommand(params));
+        await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.PutCommand(params));
     }
     async getNumFollowers(alias) {
         return await this.getFollowCount(alias, this.numFollowersAttr);
@@ -69,7 +70,7 @@ class UserDaoDynamo {
             Key: this.generateUserKey(alias),
             ProjectionExpression: attribute
         };
-        const output = await this.client.send(new lib_dynamodb_1.GetCommand(params));
+        const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.GetCommand(params));
         return output.Item == undefined ? undefined : output.Item[attribute];
     }
     async incrementFollowCount(alias, attribute) {
@@ -85,7 +86,7 @@ class UserDaoDynamo {
             UpdateExpression: `ADD #${attribute} :increment`,
             ReturnValues: client_dynamodb_1.ReturnValue.UPDATED_NEW
         };
-        const output = await this.client.send(new lib_dynamodb_1.UpdateCommand(params));
+        const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.UpdateCommand(params));
         return output.Attributes == undefined ? undefined : output.Attributes[attribute];
     }
     async decrementFollowCount(alias, attribute) {
@@ -101,7 +102,7 @@ class UserDaoDynamo {
             UpdateExpression: `ADD #${attribute} :decrement`,
             ReturnValues: client_dynamodb_1.ReturnValue.UPDATED_NEW
         };
-        const output = await this.client.send(new lib_dynamodb_1.UpdateCommand(params));
+        const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.UpdateCommand(params));
         return output.Attributes == undefined ? undefined : output.Attributes[attribute];
     }
     generateUserItem(firstName, lastName, alias, imageUrl, hashedPassword) {

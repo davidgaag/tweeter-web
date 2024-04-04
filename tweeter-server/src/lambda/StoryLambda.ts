@@ -1,5 +1,6 @@
 import { LoadMoreItemsRequest, LoadMoreItemsResponse, Status } from "tweeter-shared";
 import { StatusService } from "../model/service/StatusService";
+import { DynamoDaoFactory } from "../dao/dynamoDB/DynamoDaoFactory";
 
 export const StoryHandler = async (event: JSON): Promise<LoadMoreItemsResponse<Status>> => {
    let request: LoadMoreItemsRequest<Status>;
@@ -12,7 +13,7 @@ export const StoryHandler = async (event: JSON): Promise<LoadMoreItemsResponse<S
 
    let response = new LoadMoreItemsResponse<Status>(
       true,
-      ...await new StatusService().loadMoreStoryItems(
+      ...await new StatusService(new DynamoDaoFactory()).loadMoreStoryItems(
          request.authToken,
          request.user,
          request.pageSize,

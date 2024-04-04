@@ -7,7 +7,7 @@ const DynamoDaoFactory_1 = require("../dao/dynamoDB/DynamoDaoFactory");
 const LogOutHandler = async (event) => {
     let request;
     try {
-        request = tweeter_shared_1.LogOutRequest.fromJson(event);
+        request = tweeter_shared_1.AuthTokenRequest.fromJson(event);
     }
     catch (error) {
         console.error("LogOutHandler, error parsing request: " + error);

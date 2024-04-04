@@ -4,12 +4,10 @@ import { Service } from "./Service";
 
 export class FollowService extends Service {
    private followsDao: FollowsDaoInterface;
-   private userDao: UserDaoInterface;
 
    constructor(daoFactory: DaoFactory) {
       super(daoFactory);
       this.followsDao = daoFactory.getFollowsDao();
-      this.userDao = daoFactory.getUserDao();
    }
 
    public async loadMoreFollowers(

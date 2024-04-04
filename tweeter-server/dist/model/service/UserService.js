@@ -8,11 +8,9 @@ const tweeter_shared_1 = require("tweeter-shared");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const Service_1 = require("./Service");
 class UserService extends Service_1.Service {
-    userDao;
     imageDao;
     constructor(daoFactory) {
         super(daoFactory);
-        this.userDao = daoFactory.getUserDao();
         this.imageDao = daoFactory.getImageDao();
     }
     async getUser(authToken, alias) {

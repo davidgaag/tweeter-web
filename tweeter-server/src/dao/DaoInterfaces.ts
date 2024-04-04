@@ -1,4 +1,4 @@
-import { AuthToken, User } from "tweeter-shared";
+import { AuthToken, Status, User } from "tweeter-shared";
 import { DataPage } from "../model/DataPage";
 
 export interface DaoFactory {
@@ -6,6 +6,7 @@ export interface DaoFactory {
    getImageDao: () => ImageDaoInterface;
    getAuthTokenDao: () => AuthTokenDaoInterface;
    getFollowsDao: () => FollowsDaoInterface;
+   getStatusDao: () => StatusDaoInterface;
    // TODO: remaining DAO interfaces
 }
 
@@ -34,11 +35,16 @@ export interface AuthTokenDaoInterface {
 }
 
 export interface FollowsDaoInterface {
-   getMoreFollowers(alias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>>;
-   getMoreFollowees(alias: string, pageSize: number, lastAlias: string | null): Promise<DataPage<string>>;
+   getMoreFollowers(alias: string, pageSize: number | null, lastAlias: string | null): Promise<DataPage<string>>;
+   getMoreFollowees(alias: string, pageSize: number | null, lastAlias: string | null): Promise<DataPage<string>>;
    getFollowingStatus(followerAlias: string, followeeAlias: string): Promise<boolean>;
    putFollow(followerAlias: string, followeeAlias: string): Promise<boolean>;
    deleteFollow(followerAlias: string, followeeAlias: string): Promise<boolean>;
 }
 
-
+export interface StatusDaoInterface {
+   getMoreStoryItems(userAlias: string, pageSize: number, lastItem: Status | null): Promise<DataPage<Status>>;
+   getMoreFeedItems(userAlias: string, pageSize: number, lastItem: Status | null): Promise<DataPage<Status>>;
+   putStatusInStory(status: Status): Promise<void>;
+   putStatusInFeeds(status: Status, followerAliases: string[]): Promise<void>;
+}

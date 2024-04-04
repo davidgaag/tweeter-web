@@ -1,4 +1,4 @@
-import { AuthToken, User, LoginRequest, RegisterRequest, GetUserRequest, LogOutRequest } from "tweeter-shared";
+import { AuthToken, User, LoginRequest, RegisterRequest, GetUserRequest, AuthTokenRequest } from "tweeter-shared";
 import { Buffer } from "buffer";
 import { ServerFacade } from "../net/ServerFacade";
 
@@ -43,6 +43,6 @@ export class UserService {
    };
 
    public async logout(authToken: AuthToken): Promise<void> {
-      await this.serverFacade.logout(new LogOutRequest(authToken));
+      await this.serverFacade.logout(new AuthTokenRequest(authToken));
    };
 }

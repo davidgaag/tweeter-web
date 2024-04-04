@@ -1,6 +1,7 @@
 import { PostStatusRequest } from "tweeter-shared";
 import { TweeterResponse } from "tweeter-shared/dist/model/net/Response";
 import { StatusService } from "../model/service/StatusService";
+import { DynamoDaoFactory } from "../dao/dynamoDB/DynamoDaoFactory";
 
 export const PostStatusHandler = async (event: JSON): Promise<TweeterResponse> => {
    let request: PostStatusRequest;
@@ -11,7 +12,7 @@ export const PostStatusHandler = async (event: JSON): Promise<TweeterResponse> =
       throw new Error("[Bad Request] Invalid request");
    }
 
-   await new StatusService().postStatus(request.authToken, request.newStatus);
+   await new StatusService(new DynamoDaoFactory()).postStatus(request.authToken, request.newStatus);
 
    let response = new TweeterResponse(
       true,

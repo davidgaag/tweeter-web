@@ -15,7 +15,7 @@ export { UserRequest } from "./model/net/Request";
 export { LoadMoreItemsRequest } from "./model/net/Request";
 export { PostStatusRequest } from "./model/net/Request";
 export { GetUserRequest } from "./model/net/Request";
-export { LogOutRequest } from "./model/net/Request";
+export { AuthTokenRequest } from "./model/net/Request";
 
 export { TweeterResponse } from "./model/net/Response";
 export { AuthResponse } from "./model/net/Response";
