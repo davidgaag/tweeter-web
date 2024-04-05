@@ -11,7 +11,6 @@ export const client = DynamoDBDocumentClient.from(new DynamoDBClient());
 
 export const createTimeStamp = () => Math.floor(new Date().getTime());
 
-
 export class DynamoDaoFactory implements DaoFactory {
    public getUserDao() { return new UserDaoDynamo(); }
    public getImageDao() { return new ImageDaoS3(); }

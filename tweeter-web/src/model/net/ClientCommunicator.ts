@@ -19,10 +19,11 @@ export class ClientCommunicator {
       try {
          const resp: Response = await fetch(url, request);
          if (resp.ok) {
-            // console.log(resp);
+            // console.log("response ok!", resp);
             const response: JSON = await resp.json();
             return response;
          } else {
+            // console.log("response not ok :( ", resp)
             const error = await resp.json();
             throw new Error(error.errorMessage);
          }

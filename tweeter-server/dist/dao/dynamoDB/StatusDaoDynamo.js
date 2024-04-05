@@ -49,9 +49,6 @@ class StatusDaoDynamo {
         else {
             attrToMatch = this.feedOwnerAttr;
         }
-        console.log("Last item: ", lastItem);
-        console.log("Last item user alias: ", lastItem?.user.alias);
-        console.log("Last item timestamp: ", lastItem?.timestamp);
         const params = {
             TableName: tableName,
             KeyConditionExpression: `${attrToMatch} = :alias`,
@@ -67,10 +64,8 @@ class StatusDaoDynamo {
                     [this.createdAtAttr]: lastItem.timestamp
                 }
         };
-        console.log("params: ", params);
         const statuses = [];
         const data = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.QueryCommand(params));
-        console.log("data: ", data);
         const hasMorePages = data.LastEvaluatedKey !== undefined;
         data.Items?.forEach((item) => {
             statuses.push(new tweeter_shared_1.Status(item[this.contentAttr], new tweeter_shared_1.User("tempFirstName", "tempLastName", item[this.authorAttr], "tempUrl"), item[this.createdAtAttr]));

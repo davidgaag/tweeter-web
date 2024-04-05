@@ -30,7 +30,7 @@ export class Service {
       try {
          return await operation;
       } catch (error) {
-         throw new Error("[Internal Server Error] Could not complete operation. " + error);
+         throw new Error("[Internal Server Error] Could not complete operation."); // Debug: log error
       }
    }
 

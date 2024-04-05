@@ -9,7 +9,6 @@ class FollowService extends Service_1.Service {
         this.followsDao = daoFactory.getFollowsDao();
     }
     async loadMoreFollowers(authToken, user, pageSize, lastItem) {
-        console.log("loadMoreFollowers: ", user, pageSize, lastItem);
         return await this.loadMoreFollows(authToken, user, pageSize, lastItem, true);
     }
     ;
@@ -45,7 +44,6 @@ class FollowService extends Service_1.Service {
             lastItem.alias = this.stripAtSign(lastItem.alias).toLowerCase();
         }
         await this.getAssociatedAlias(authToken);
-        console.log("ISFOLLOWERS: ", isFollowers);
         const dataPage = await this.tryDbOperation(isFollowers
             ? this.followsDao.getMoreFollowers(aliasWithoutAtSign, pageSize, lastItem?.alias ?? null)
             : this.followsDao.getMoreFollowees(aliasWithoutAtSign, pageSize, lastItem?.alias ?? null));
@@ -57,13 +55,11 @@ class FollowService extends Service_1.Service {
         for (let user of unsortedUsers) {
             usersMap.set(user.alias, user);
         }
-        console.log("UNSORTED USERS in SERVICE: ", unsortedUsers);
         let follows = [];
         for (let followAlias of dataPage.values) {
             follows.push(usersMap.get(followAlias));
             follows[follows.length - 1].alias = this.addAtSign(followAlias);
         }
-        console.log("SERVICE RESULT loadMoreFollows: ", follows, dataPage.hasMorePages);
         return [follows, dataPage.hasMorePages];
     }
     async getFollowCount(authToken, user, isFollowers) {

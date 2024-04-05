@@ -76,9 +76,6 @@ class FollowsDaoDynamo {
             sortKeyAttribute = this.followerHandleAttr;
             useIndex = true;
         }
-        console.log("attributeName: ", attributeName, userAlias);
-        console.log("sortKeyAttribute: ", sortKeyAttribute, lastAlias);
-        console.log("useIndex: ", useIndex);
         const params = {
             KeyConditionExpression: attributeName + " = :userAlias",
             ExpressionAttributeValues: {
@@ -99,13 +96,10 @@ class FollowsDaoDynamo {
         if (pageSize !== null) {
             params.Limit = pageSize;
         }
-        console.log("params: ", params);
         const aliases = [];
         const data = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.QueryCommand(params));
-        console.log("data: ", data);
         const hasMorePages = data.LastEvaluatedKey !== undefined;
         data.Items?.forEach((item) => aliases.push(item[sortKeyAttribute]));
-        console.log("aliases after mapping items: ", aliases);
         return new DataPage_1.DataPage(aliases, hasMorePages);
     }
     generateFollowItem(followerAlias, followeeAlias) {
