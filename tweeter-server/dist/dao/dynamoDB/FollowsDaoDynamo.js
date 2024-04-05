@@ -18,10 +18,10 @@ class FollowsDaoDynamo {
     followeeHandleAttr = "followee_handle";
     // readonly followeeNameAttr = "followee_name";
     async getMoreFollowers(userAlias, pageSize, lastAlias) {
-        return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followeeHandleAttr, true);
+        return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followeeHandleAttr);
     }
     async getMoreFollowees(userAlias, pageSize, lastAlias) {
-        return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followerHandleAttr, false);
+        return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followerHandleAttr);
     }
     async putFollow(followerAlias, followeeAlias) {
         const params = {
@@ -65,25 +65,32 @@ class FollowsDaoDynamo {
         const data = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.GetCommand(params));
         return data.Item !== undefined;
     }
-    async getMoreFollows(userAlias, pageSize, lastAlias, attributeName, useIndex) {
+    async getMoreFollows(userAlias, pageSize, lastAlias, attributeName) {
         let sortKeyAttribute;
-        if (attributeName === this.followerHandleAttr) {
+        let useIndex;
+        if (attributeName === this.followerHandleAttr) { // getMoreFollowees
             sortKeyAttribute = this.followeeHandleAttr;
+            useIndex = false;
         }
-        else {
+        else { // getMoreFollowers
             sortKeyAttribute = this.followerHandleAttr;
+            useIndex = true;
         }
+        console.log("attributeName: ", attributeName, userAlias);
+        console.log("sortKeyAttribute: ", sortKeyAttribute, lastAlias);
+        console.log("useIndex: ", useIndex);
         const params = {
             KeyConditionExpression: attributeName + " = :userAlias",
             ExpressionAttributeValues: {
                 ":userAlias": userAlias,
             },
             TableName: this.tableName,
+            ScanIndexForward: true,
             ExclusiveStartKey: lastAlias === null
                 ? undefined
                 : {
-                    [this.followerHandleAttr]: lastAlias,
-                    [this.followeeHandleAttr]: userAlias,
+                    [attributeName]: userAlias,
+                    [sortKeyAttribute]: lastAlias,
                 },
         };
         if (useIndex) {
@@ -92,10 +99,13 @@ class FollowsDaoDynamo {
         if (pageSize !== null) {
             params.Limit = pageSize;
         }
+        console.log("params: ", params);
         const aliases = [];
         const data = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.QueryCommand(params));
+        console.log("data: ", data);
         const hasMorePages = data.LastEvaluatedKey !== undefined;
         data.Items?.forEach((item) => aliases.push(item[sortKeyAttribute]));
+        console.log("aliases after mapping items: ", aliases);
         return new DataPage_1.DataPage(aliases, hasMorePages);
     }
     generateFollowItem(followerAlias, followeeAlias) {

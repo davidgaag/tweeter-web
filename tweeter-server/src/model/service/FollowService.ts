@@ -16,6 +16,7 @@ export class FollowService extends Service {
       pageSize: number,
       lastItem: User | null
    ): Promise<[User[], boolean]> {
+      console.log("loadMoreFollowers: ", user, pageSize, lastItem);
       return await this.loadMoreFollows(authToken, user, pageSize, lastItem, true);
    };
 
@@ -64,7 +65,12 @@ export class FollowService extends Service {
       isFollowers: boolean)
       : Promise<[User[], boolean]> {
       const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
+      if (lastItem) {
+         lastItem.alias = this.stripAtSign(lastItem.alias).toLowerCase();
+      }
       await this.getAssociatedAlias(authToken);
+
+      console.log("ISFOLLOWERS: ", isFollowers);
 
       const dataPage = await this.tryDbOperation(
          isFollowers
@@ -84,10 +90,19 @@ export class FollowService extends Service {
          return [[], false];
       }
 
-      const follows = await this.tryDbOperation(this.userDao.getUsersByAlias(dataPage.values));
-      for (let follow of follows) {
-         follow.alias = this.addAtSign(follow.alias);
+      const unsortedUsers = await this.tryDbOperation(this.userDao.getUsersByAlias(dataPage.values));
+      const usersMap = new Map<string, User>();
+      for (let user of unsortedUsers) {
+         usersMap.set(user.alias, user);
       }
+
+      console.log("UNSORTED USERS in SERVICE: ", unsortedUsers);
+      let follows: User[] = [];
+      for (let followAlias of dataPage.values) {
+         follows.push(usersMap.get(followAlias)!);
+         follows[follows.length - 1].alias = this.addAtSign(followAlias);
+      }
+      console.log("SERVICE RESULT loadMoreFollows: ", follows, dataPage.hasMorePages)
       return [follows, dataPage.hasMorePages];
    }
 

@@ -57,7 +57,6 @@ class UserDaoDynamo {
     }
     async decrementFollowers(alias) {
         return await this.incOrDecFollowCount(alias, this.numFollowersAttr, -1);
-        // return await this.decrementFollowCount(alias, this.numFollowersAttr);
     }
     async incrementFollowees(alias) {
         return await this.incOrDecFollowCount(alias, this.numFolloweesAttr, 1);

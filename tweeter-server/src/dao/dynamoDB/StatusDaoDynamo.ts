@@ -55,6 +55,10 @@ export class StatusDaoDynamo implements StatusDaoInterface {
          attrToMatch = this.feedOwnerAttr;
       }
 
+      console.log("Last item: ", lastItem);
+      console.log("Last item user alias: ", lastItem?.user.alias);
+      console.log("Last item timestamp: ", lastItem?.timestamp);
+
       const params = {
          TableName: tableName,
          KeyConditionExpression: `${attrToMatch} = :alias`,
@@ -62,7 +66,14 @@ export class StatusDaoDynamo implements StatusDaoInterface {
             ":alias": userAlias
          },
          Limit: pageSize,
-         ScanIndexForward: false
+         ScanIndexForward: false,
+         ExclusiveStartKey:
+            lastItem === null
+               ? undefined
+               : {
+                  [attrToMatch]: userAlias,
+                  [this.createdAtAttr]: lastItem.timestamp
+               }
       };
       console.log("params: ", params);
       const statuses: Status[] = [];
@@ -73,7 +84,7 @@ export class StatusDaoDynamo implements StatusDaoInterface {
          statuses.push(new Status(
             item[this.contentAttr],
             new User("tempFirstName", "tempLastName", item[this.authorAttr], "tempUrl"),
-            item[this.createdAtAttr] * 1000
+            item[this.createdAtAttr]
          ));
       });
       return new DataPage(statuses, hasMorePages);
@@ -82,7 +93,7 @@ export class StatusDaoDynamo implements StatusDaoInterface {
    private createStoryItem(status: Status) {
       return {
          [this.authorAttr]: status.user.alias,
-         [this.createdAtAttr]: Math.floor(status.timestamp / 1000),
+         [this.createdAtAttr]: status.timestamp,
          [this.contentAttr]: status.post
       }
    }
@@ -91,7 +102,7 @@ export class StatusDaoDynamo implements StatusDaoInterface {
       return {
          [this.feedOwnerAttr]: followerAlias,
          [this.authorAttr]: status.user.alias,
-         [this.createdAtAttr]: Math.floor(status.timestamp / 1000),
+         [this.createdAtAttr]: status.timestamp,
          [this.contentAttr]: status.post
       }
    }

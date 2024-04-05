@@ -9,7 +9,7 @@ import { StatusDaoDynamo } from "./StatusDaoDynamo";
 
 export const client = DynamoDBDocumentClient.from(new DynamoDBClient());
 
-export const createTimeStamp = () => Math.floor(new Date().getTime() / 1000);
+export const createTimeStamp = () => Math.floor(new Date().getTime());
 
 
 export class DynamoDaoFactory implements DaoFactory {

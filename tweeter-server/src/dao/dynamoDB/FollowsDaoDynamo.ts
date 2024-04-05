@@ -1,6 +1,5 @@
-import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { FollowsDaoInterface } from "../DaoInterfaces";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DataPage } from "../../model/DataPage";
 import { client } from "./DynamoDaoFactory";
 
@@ -20,11 +19,11 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
    // readonly followeeNameAttr = "followee_name";
 
    public async getMoreFollowers(userAlias: string, pageSize: number | null, lastAlias: string | null): Promise<DataPage<string>> {
-      return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followeeHandleAttr, true);
+      return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followeeHandleAttr);
    }
 
    public async getMoreFollowees(userAlias: string, pageSize: number | null, lastAlias: string | null): Promise<DataPage<string>> {
-      return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followerHandleAttr, false);
+      return await this.getMoreFollows(userAlias, pageSize, lastAlias, this.followerHandleAttr);
    }
 
    public async putFollow(followerAlias: string, followeeAlias: string): Promise<boolean> {
@@ -75,19 +74,27 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
       userAlias: string,
       pageSize: number | null,
       lastAlias: string | null,
-      attributeName: string,
-      useIndex: boolean): Promise<DataPage<string>> {
+      attributeName: string
+   ): Promise<DataPage<string>> {
       let sortKeyAttribute: string;
-      if (attributeName === this.followerHandleAttr) {
+      let useIndex: boolean;
+      if (attributeName === this.followerHandleAttr) { // getMoreFollowees
          sortKeyAttribute = this.followeeHandleAttr;
-      } else {
+         useIndex = false;
+      } else { // getMoreFollowers
          sortKeyAttribute = this.followerHandleAttr;
+         useIndex = true;
       }
+
+      console.log("attributeName: ", attributeName, userAlias)
+      console.log("sortKeyAttribute: ", sortKeyAttribute, lastAlias)
+      console.log("useIndex: ", useIndex)
 
       const params: {
          KeyConditionExpression: string;
          ExpressionAttributeValues: { [key: string]: string };
          TableName: string;
+         ScanIndexForward: boolean;
          Limit?: number;
          ExclusiveStartKey?: { [key: string]: string };
          IndexName?: string;
@@ -97,12 +104,13 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
             ":userAlias": userAlias,
          },
          TableName: this.tableName,
+         ScanIndexForward: true,
          ExclusiveStartKey:
             lastAlias === null
                ? undefined
                : {
-                  [this.followerHandleAttr]: lastAlias,
-                  [this.followeeHandleAttr]: userAlias,
+                  [attributeName]: userAlias,
+                  [sortKeyAttribute]: lastAlias,
                },
       };
 
@@ -114,10 +122,14 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
          params.Limit = pageSize;
       }
 
+      console.log("params: ", params);
+
       const aliases: string[] = [];
       const data = await client.send(new QueryCommand(params));
+      console.log("data: ", data)
       const hasMorePages = data.LastEvaluatedKey !== undefined;
       data.Items?.forEach((item) => aliases.push(item[sortKeyAttribute]));
+      console.log("aliases after mapping items: ", aliases)
       return new DataPage(aliases, hasMorePages);
    }
 

@@ -28,32 +28,24 @@ class StatusService extends Service_1.Service {
         }
         await this.tryDbOperation(this.statusDao.putStatusInStory(newStatus));
         const followerAliases = (await this.tryDbOperation(this.followsDao.getMoreFollowers(authorizedUserAlias, null, null))).values;
-        console.log("FOLLOWER ALIASES: ", followerAliases);
         await this.tryDbOperation(this.statusDao.putStatusInFeeds(newStatus, followerAliases));
     }
     ;
     async loadMoreStatuses(dbStatusLoadFunction, authToken, user, pageSize, lastItem) {
-        console.log("IN LOADMORESTATUSES");
         const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
+        if (lastItem) {
+            lastItem.user.alias = this.stripAtSign(lastItem.user.alias).toLowerCase();
+        }
         await this.getAssociatedAlias(authToken);
-        console.log("BEFORE TRYDBOPERATION");
         const dataPage = await this.tryDbOperation(dbStatusLoadFunction(aliasWithoutAtSign, pageSize, lastItem));
-        console.log("AFTER TRYDBOPERATION");
         if (dataPage.values.length === 0) {
             return [[], false];
         }
         const statuses = dataPage.values;
-        console.log("STATUSES: ", statuses);
         const aliases = [...new Set(statuses.map(status => status.user.alias))];
-        console.log("ALIASES: ", aliases);
         const users = (await this.tryDbOperation(this.userDao.getUsersByAlias(aliases)));
-        console.log("USERS1: ", users);
         for (let status of statuses) {
-            console.log("USERS2: ", users);
-            console.log("STATUS: ", status);
-            console.log("STATUS.USER.ALIAS: ", status.user.alias);
             status.user = users.find(user => user.alias === status.user.alias);
-            console.log("STATUS.USER AFTER ASSIGN: ", status.user);
         }
         for (let status of statuses) {
             status.user.alias = this.addAtSign(status.user.alias);

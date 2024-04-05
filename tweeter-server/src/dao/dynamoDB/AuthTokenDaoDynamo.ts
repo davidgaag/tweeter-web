@@ -27,7 +27,9 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
       if (output.Item == undefined) {
          return undefined;
       }
-      return this.checkExpired(output.Item[this.createdAtAttr]) ? undefined : output.Item[this.aliasAttr];
+      return this.checkExpired(output.Item[this.expirationAttr])
+         ? undefined
+         : output.Item[this.aliasAttr];
    }
 
    public async updateTokenExpiration(token: AuthToken): Promise<void> {
@@ -69,11 +71,11 @@ export class AuthTokenDaoDynamo implements AuthTokenDaoInterface {
    }
 
    private calculateExpiration() {
-      // Calculate the expiration time (one hour from now) in epoch second format
-      return Math.floor(createTimeStamp() + 60 * 60);
+      // Calculate the expiration time (one hour from now) in epoch millisecond format
+      return Math.floor(createTimeStamp() + (60 * 60 * 1000));
    }
 
-   private checkExpired(timestampInSeconds: number): boolean {
-      return timestampInSeconds < createTimeStamp();
+   private checkExpired(timestamp: number): boolean {
+      return timestamp < createTimeStamp();
    }
 }

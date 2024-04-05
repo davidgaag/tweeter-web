@@ -49,6 +49,9 @@ class StatusDaoDynamo {
         else {
             attrToMatch = this.feedOwnerAttr;
         }
+        console.log("Last item: ", lastItem);
+        console.log("Last item user alias: ", lastItem?.user.alias);
+        console.log("Last item timestamp: ", lastItem?.timestamp);
         const params = {
             TableName: tableName,
             KeyConditionExpression: `${attrToMatch} = :alias`,
@@ -56,7 +59,13 @@ class StatusDaoDynamo {
                 ":alias": userAlias
             },
             Limit: pageSize,
-            ScanIndexForward: false
+            ScanIndexForward: false,
+            ExclusiveStartKey: lastItem === null
+                ? undefined
+                : {
+                    [attrToMatch]: userAlias,
+                    [this.createdAtAttr]: lastItem.timestamp
+                }
         };
         console.log("params: ", params);
         const statuses = [];
@@ -64,14 +73,14 @@ class StatusDaoDynamo {
         console.log("data: ", data);
         const hasMorePages = data.LastEvaluatedKey !== undefined;
         data.Items?.forEach((item) => {
-            statuses.push(new tweeter_shared_1.Status(item[this.contentAttr], new tweeter_shared_1.User("tempFirstName", "tempLastName", item[this.authorAttr], "tempUrl"), item[this.createdAtAttr] * 1000));
+            statuses.push(new tweeter_shared_1.Status(item[this.contentAttr], new tweeter_shared_1.User("tempFirstName", "tempLastName", item[this.authorAttr], "tempUrl"), item[this.createdAtAttr]));
         });
         return new DataPage_1.DataPage(statuses, hasMorePages);
     }
     createStoryItem(status) {
         return {
             [this.authorAttr]: status.user.alias,
-            [this.createdAtAttr]: Math.floor(status.timestamp / 1000),
+            [this.createdAtAttr]: status.timestamp,
             [this.contentAttr]: status.post
         };
     }
@@ -79,7 +88,7 @@ class StatusDaoDynamo {
         return {
             [this.feedOwnerAttr]: followerAlias,
             [this.authorAttr]: status.user.alias,
-            [this.createdAtAttr]: Math.floor(status.timestamp / 1000),
+            [this.createdAtAttr]: status.timestamp,
             [this.contentAttr]: status.post
         };
     }

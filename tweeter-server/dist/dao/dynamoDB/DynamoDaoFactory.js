@@ -9,7 +9,7 @@ const UserDaoDynamo_1 = require("./UserDaoDynamo");
 const lib_dynamodb_1 = require("@aws-sdk/lib-dynamodb");
 const StatusDaoDynamo_1 = require("./StatusDaoDynamo");
 exports.client = lib_dynamodb_1.DynamoDBDocumentClient.from(new client_dynamodb_1.DynamoDBClient());
-const createTimeStamp = () => Math.floor(new Date().getTime() / 1000);
+const createTimeStamp = () => Math.floor(new Date().getTime());
 exports.createTimeStamp = createTimeStamp;
 class DynamoDaoFactory {
     getUserDao() { return new UserDaoDynamo_1.UserDaoDynamo(); }

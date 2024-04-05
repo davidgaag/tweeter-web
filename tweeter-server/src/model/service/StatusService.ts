@@ -74,6 +74,9 @@ export class StatusService extends Service {
       lastItem: Status | null
    ): Promise<[Status[], boolean]> {
       const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
+      if (lastItem) {
+         lastItem.user.alias = this.stripAtSign(lastItem.user.alias).toLowerCase();
+      }
       await this.getAssociatedAlias(authToken);
 
       const dataPage = await this.tryDbOperation(
@@ -85,7 +88,6 @@ export class StatusService extends Service {
       const statuses = dataPage.values;
       const aliases: string[] = [...new Set(statuses.map(status => status.user.alias))];
       const users = (await this.tryDbOperation(this.userDao.getUsersByAlias(aliases)));
-
 
       for (let status of statuses) {
          status.user = users.find(user => user.alias === status.user.alias)!;

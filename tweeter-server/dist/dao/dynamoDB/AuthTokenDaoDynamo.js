@@ -16,22 +16,18 @@ class AuthTokenDaoDynamo {
         };
         await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.PutCommand(params));
     }
-    // public async checkAuthToken(token: AuthToken): Promise<boolean> {
-    //    const params = {
-    //       TableName: this.tableName,
-    //       Key: this.generateAuthTokenKey(token.token)
-    //    };
-    //    const output = await client.send(new GetCommand(params));
-    //    return output.Item != undefined;
-    // }
-    // TODO: Is this necessary?
     async getAssociatedAlias(token) {
         const params = {
             TableName: this.tableName,
             Key: this.generateAuthTokenKey(token.token)
         };
         const output = await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.GetCommand(params));
-        return output.Item == undefined ? undefined : output.Item[this.aliasAttr];
+        if (output.Item == undefined) {
+            return undefined;
+        }
+        return this.checkExpired(output.Item[this.expirationAttr])
+            ? undefined
+            : output.Item[this.aliasAttr];
     }
     async updateTokenExpiration(token) {
         const params = {
@@ -68,8 +64,11 @@ class AuthTokenDaoDynamo {
         };
     }
     calculateExpiration() {
-        // Calculate the expiration time (one hour from now) in epoch second format
-        return Math.floor((0, DynamoDaoFactory_1.createTimeStamp)() + 60 * 60);
+        // Calculate the expiration time (one hour from now) in epoch millisecond format
+        return Math.floor((0, DynamoDaoFactory_1.createTimeStamp)() + (60 * 60 * 1000));
+    }
+    checkExpired(timestamp) {
+        return timestamp < (0, DynamoDaoFactory_1.createTimeStamp)();
     }
 }
 exports.AuthTokenDaoDynamo = AuthTokenDaoDynamo;

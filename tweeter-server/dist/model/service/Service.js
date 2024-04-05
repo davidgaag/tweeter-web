@@ -38,7 +38,8 @@ class Service {
     async getAssociatedAlias(authToken) {
         const alias = await this.tryDbOperation(this.authTokenDao.getAssociatedAlias(authToken));
         if (!alias) {
-            throw new Error("[Unauthorized] Invalid or incorrect auth token");
+            this.authTokenDao.deleteAuthToken(authToken);
+            throw new Error("[Unauthorized] Invalid, incorrect, or expired auth token");
         }
         else {
             return alias;
