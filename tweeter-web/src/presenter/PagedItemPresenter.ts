@@ -43,10 +43,8 @@ export abstract class PagedItemPresenter<T, U> extends Presenter<PagedItemView<T
       this.doFailureReportingOperation(async () => {
          if (this.hasMoreItems) {
             let [newItems, hasMore] = await this.getMoreItems(authToken, user);
-            console.log("New items: ", newItems);
             this.hasMoreItems = hasMore;
             this.lastItem = newItems[newItems.length - 1];
-            console.log("Last item: ", this.lastItem);
             this.view.addItems(newItems);
          }
       }, this.getItemDescription());

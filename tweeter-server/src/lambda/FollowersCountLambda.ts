@@ -11,11 +11,9 @@ export const FollowersCountHandler = async (event: JSON): Promise<UserCountRespo
       throw new Error("[Bad Request] Invalid request");
    }
 
-   console.log("In followers count handler");
    let response = new UserCountResponse(
       true,
       await new FollowService(new DynamoDaoFactory()).getFollowersCount(request.authToken, request.user),
       "Get followers count successful");
-   console.log("In followers count handler after service call");
    return response;
 };

@@ -55,10 +55,6 @@ export class StatusDaoDynamo implements StatusDaoInterface {
          attrToMatch = this.feedOwnerAttr;
       }
 
-      console.log("Last item: ", lastItem);
-      console.log("Last item user alias: ", lastItem?.user.alias);
-      console.log("Last item timestamp: ", lastItem?.timestamp);
-
       const params = {
          TableName: tableName,
          KeyConditionExpression: `${attrToMatch} = :alias`,
@@ -75,10 +71,8 @@ export class StatusDaoDynamo implements StatusDaoInterface {
                   [this.createdAtAttr]: lastItem.timestamp
                }
       };
-      console.log("params: ", params);
       const statuses: Status[] = [];
       const data = await client.send(new QueryCommand(params));
-      console.log("data: ", data);
       const hasMorePages = data.LastEvaluatedKey !== undefined;
       data.Items?.forEach((item) => {
          statuses.push(new Status(

@@ -86,10 +86,6 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
          useIndex = true;
       }
 
-      console.log("attributeName: ", attributeName, userAlias)
-      console.log("sortKeyAttribute: ", sortKeyAttribute, lastAlias)
-      console.log("useIndex: ", useIndex)
-
       const params: {
          KeyConditionExpression: string;
          ExpressionAttributeValues: { [key: string]: string };
@@ -122,14 +118,10 @@ export class FollowsDaoDynamo implements FollowsDaoInterface {
          params.Limit = pageSize;
       }
 
-      console.log("params: ", params);
-
       const aliases: string[] = [];
       const data = await client.send(new QueryCommand(params));
-      console.log("data: ", data)
       const hasMorePages = data.LastEvaluatedKey !== undefined;
       data.Items?.forEach((item) => aliases.push(item[sortKeyAttribute]));
-      console.log("aliases after mapping items: ", aliases)
       return new DataPage(aliases, hasMorePages);
    }
 
