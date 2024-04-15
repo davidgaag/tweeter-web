@@ -38,7 +38,13 @@ class StatusDaoDynamo {
                     }))
                 }
             };
-            await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.BatchWriteCommand(params));
+            try {
+                await DynamoDaoFactory_1.client.send(new lib_dynamodb_1.BatchWriteCommand(params));
+            }
+            catch (error) {
+                console.error("Failed to put status in feeds IN DAO because of exception: ", error);
+                throw error;
+            }
         }
     }
     async getMoreStatuses(tableName, userAlias, pageSize, lastItem) {

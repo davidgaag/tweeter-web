@@ -5,7 +5,7 @@ import { DataPage } from "../DataPage";
 
 export class StatusService extends Service {
    private statusDao: StatusDaoInterface;
-   private followsDao: FollowsDaoInterface;
+   private followsDao: FollowsDaoInterface; // TODO: remove this?
 
    constructor(daoFactory: DaoFactory) {
       super(daoFactory);
@@ -41,9 +41,9 @@ export class StatusService extends Service {
          pageSize,
          lastItem
       );
-   };
+   }
 
-   public async postStatus(
+   public async postStatusToStory(
       authToken: AuthToken,
       newStatus: Status
    ): Promise<void> {
@@ -58,9 +58,16 @@ export class StatusService extends Service {
       }
 
       await this.tryDbOperation(this.statusDao.putStatusInStory(newStatus));
-      const followerAliases = (await this.tryDbOperation(this.followsDao.getMoreFollowers(authorizedUserAlias, null, null))).values;
-      await this.tryDbOperation(this.statusDao.putStatusInFeeds(newStatus, followerAliases));
-   };
+      // Commented for M4B
+      // const followerAliases = (await this.tryDbOperation(this.followsDao.getMoreFollowers(authorizedUserAlias, null, null))).values;
+      // await this.tryDbOperation(this.statusDao.putStatusInFeeds(newStatus, followerAliases));
+   }
+
+   public async postStatusToFeeds(status: Status, followerAliases: string[]): Promise<void> {
+      this.stripAtSign(status.user.alias);
+      console.log("status, followerAliases", status, followerAliases);
+      await this.tryDbOperation(this.statusDao.putStatusInFeeds(status, followerAliases));
+   }
 
    private async loadMoreStatuses(
       dbStatusLoadFunction: (

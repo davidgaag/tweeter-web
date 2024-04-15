@@ -4,7 +4,7 @@ exports.StatusService = void 0;
 const Service_1 = require("./Service");
 class StatusService extends Service_1.Service {
     statusDao;
-    followsDao;
+    followsDao; // TODO: remove this?
     constructor(daoFactory) {
         super(daoFactory);
         this.statusDao = daoFactory.getStatusDao();
@@ -16,8 +16,7 @@ class StatusService extends Service_1.Service {
     async loadMoreFeedItems(authToken, user, pageSize, lastItem) {
         return await this.loadMoreStatuses(this.statusDao.getMoreFeedItems.bind(this.statusDao), authToken, user, pageSize, lastItem);
     }
-    ;
-    async postStatus(authToken, newStatus) {
+    async postStatusToStory(authToken, newStatus) {
         if (newStatus.post.length === 0) {
             throw new Error("[Bad Request] Status content cannot be empty");
         }
@@ -27,10 +26,15 @@ class StatusService extends Service_1.Service {
             throw new Error("[Unauthorized] You are not authorized to post a status for this user");
         }
         await this.tryDbOperation(this.statusDao.putStatusInStory(newStatus));
-        const followerAliases = (await this.tryDbOperation(this.followsDao.getMoreFollowers(authorizedUserAlias, null, null))).values;
-        await this.tryDbOperation(this.statusDao.putStatusInFeeds(newStatus, followerAliases));
+        // Commented for M4B
+        // const followerAliases = (await this.tryDbOperation(this.followsDao.getMoreFollowers(authorizedUserAlias, null, null))).values;
+        // await this.tryDbOperation(this.statusDao.putStatusInFeeds(newStatus, followerAliases));
     }
-    ;
+    async postStatusToFeeds(status, followerAliases) {
+        this.stripAtSign(status.user.alias);
+        console.log("status, followerAliases", status, followerAliases);
+        await this.tryDbOperation(this.statusDao.putStatusInFeeds(status, followerAliases));
+    }
     async loadMoreStatuses(dbStatusLoadFunction, authToken, user, pageSize, lastItem) {
         const aliasWithoutAtSign = this.stripAtSign(user.alias).toLowerCase();
         if (lastItem) {

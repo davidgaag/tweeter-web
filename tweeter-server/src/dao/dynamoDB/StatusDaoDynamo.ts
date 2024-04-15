@@ -43,7 +43,12 @@ export class StatusDaoDynamo implements StatusDaoInterface {
                }))
             }
          };
-         await client.send(new BatchWriteCommand(params));
+         try {
+            await client.send(new BatchWriteCommand(params));
+         } catch (error) {
+            console.error("Failed to put status in feeds IN DAO because of exception: ", error);
+            throw error;
+         }
       }
    }
 
