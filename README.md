@@ -1,6 +1,20 @@
 # Tweeter-Web
 
-A starter project for the Tweeter Web application.
+A Twitter web app clone built in React with Typescript, meant to learn and exercise best software development practices and patterns such as:
+- Single responsibility principle
+- Orthogonality
+- Minimizing dependencies
+- Open/closed principle
+- Depend on abstractions, not concrete implementations
+- Error handling
+- Writing testable code
+- Avoid primitive obsession
+- Minimizing code duplication
+- Layered software design
+- Observer pattern
+- Template method
+- Generics
+- MVP architecture
 
 ## Setting Up the Project
 
@@ -10,8 +24,6 @@ A starter project for the Tweeter Web application.
 1. cd into the tweeter-web folder
 1. Run 'npm install'
 1. Run 'npm run build'
-
-**Note:** VS Code seems to have a bug. After doing this, you should be able to run the project but code editors report that they can't see the 'tweeter-shared' module. Restarting VS Code fixes the problem. You will likely need to restart VS Code every time you compile or build the 'tweeter-shared' module.
 
 **Note:** If you are using Windows, make sure to use a Git Bash terminal instead of Windows Powershell. Otherwise, the scripts won't run properly in tweeter-shared and it will cause errors when building tweeter-web.
 
